@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B28CD148-69E7-42D2-A153-78703DCCFE57}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>Client_Migration.My.MyApplication</StartupObject>
+    <RootNamespace>Client_Migration</RootNamespace>
+    <AssemblyName>Client Migration</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>WindowsForms</MyType>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>Client Migration.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>Client Migration.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="C1.Win.C1Command.4, Version=4.0.20113.19499, Culture=neutral, PublicKeyToken=e808566f358766d8, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Used\ACCTG - 2018.01.03\ACCTG\bin\x86\Debug\C1.Win.C1Command.4.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1TrueDBGrid.4, Version=4.0.20113.61237, Culture=neutral, PublicKeyToken=75ae3fb0e2b1e0da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Used\ACCTG - 2018.01.03\ACCTG\bin\x86\Debug\C1.Win.C1TrueDBGrid.4.dll</HintPath>
+    </Reference>
+    <Reference Include="Crypting">
+      <HintPath>..\..\..\from julz\Migration\Basic 4.5\BASIC NEW\BASIC\Basic\bin\Debug\Crypting.dll</HintPath>
+    </Reference>
+    <Reference Include="DevComponents.DotNetBar.SuperGrid, Version=12.1.0.0, Culture=neutral, PublicKeyToken=c39c3242a43eee2b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\CYLIX\APPS\2018\July 8 2018\Jul 8 2018\MM\Accounting\ACCOUNTING CYLIX\N\bin\Debug\DevComponents.DotNetBar.SuperGrid.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Data.v18.1, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Printing.v18.1.Core, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Utils.v18.1, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraBars.v18.1, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraEditors.v18.1, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraGrid.v18.1, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.XtraLayout.v18.1, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="DevExpress.XtraPrinting.v18.1, Version=18.1.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a" />
+    <Reference Include="MySql.Data, Version=8.0.23.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Accounting\Common\Configurations\bin\Debug\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="SergeUtils">
+      <HintPath>C:\Users\ITDQ\Desktop\SergeUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Check List.Designer.vb">
+      <DependentUpon>Check List.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Check List.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CLASS\AccountsCls.vb" />
+    <Compile Include="CLASS\cashDepositCls.vb" />
+    <Compile Include="CLASS\cashTrackCls.vb" />
+    <Compile Include="CLASS\CheckPreplistingCls.vb" />
+    <Compile Include="CLASS\common\AddAccess.vb" />
+    <Compile Include="CLASS\common\ApvListing.vb" />
+    <Compile Include="CLASS\common\CHECKCLS.vb" />
+    <Compile Include="CLASS\common\ClsCalculator.vb" />
+    <Compile Include="CLASS\common\ConvertToDatatable.vb" />
+    <Compile Include="CLASS\common\Defaults.vb" />
+    <Compile Include="CLASS\common\DispGridWithParam.vb" />
+    <Compile Include="CLASS\common\DoubleClickSubEventArgs.vb" />
+    <Compile Include="CLASS\common\IACTIONS.vb" />
+    <Compile Include="CLASS\common\JDetails.vb" />
+    <Compile Include="CLASS\common\PARAMS.vb" />
+    <Compile Include="CLASS\common\Struct.vb" />
+    <Compile Include="CLASS\controls\ASC.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CLASS\controls\BLUE_WHITE.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CLASS\controls\ELIGANT.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CLASS\controls\FLAT.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CLASS\controls\MYDATETIMEPICKER.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CLASS\controls\SLC.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CLASS\controls\xVisuals.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CLASS\CounteringCls\CouteringList.vb" />
+    <Compile Include="CLASS\DynamicRepos.vb" />
+    <Compile Include="CLASS\enum\CLSENUMS.vb" />
+    <Compile Include="CLASS\EquityCls.vb" />
+    <Compile Include="CLASS\EXTENSION\ModExt.vb" />
+    <Compile Include="CLASS\Image_.vb" />
+    <Compile Include="CLASS\OtherChargesCls.vb" />
+    <Compile Include="CLASS\pdc_trackerCls.vb" />
+    <Compile Include="CLASS\pdc_transferCls.vb" />
+    <Compile Include="CLASS\postToLedgerCls.vb" />
+    <Compile Include="CLASS\postToLedgerOthersCls.vb" />
+    <Compile Include="CLASS\UserCls.vb" />
+    <Compile Include="Client Master.Designer.vb">
+      <DependentUpon>Client Master.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Client Master.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Bel_modules.vb" />
+    <Compile Include="Modules\MAIN_MODULE.vb" />
+    <Compile Include="Modules\modCommon.vb" />
+    <Compile Include="Modules\ModMethods.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="other class\ApBeginningCls.vb" />
+    <Compile Include="other class\atcCls.vb" />
+    <Compile Include="other class\beginningCls.vb" />
+    <Compile Include="other class\businessContacts.vb" />
+    <Compile Include="other class\businessList.vb" />
+    <Compile Include="other class\businessListDtl.vb" />
+    <Compile Include="other class\ContractorCls.vb" />
+    <Compile Include="other class\costCls.vb" />
+    <Compile Include="other class\CounteredCls.vb" />
+    <Compile Include="other class\employeeCls.vb" />
+    <Compile Include="other class\floorCls.vb" />
+    <Compile Include="other class\itemMasterCls.vb" />
+    <Compile Include="other class\managerBrokerCls.vb" />
+    <Compile Include="other class\PayeeCls.vb" />
+    <Compile Include="other class\poCls.vb" />
+    <Compile Include="other class\propertySetupCls.vb" />
+    <Compile Include="other class\unitTypeLocCls.vb" />
+    <Compile Include="other class\userCls.vb" />
+    <Compile Include="other modules\atc_saving.vb" />
+    <Compile Include="other modules\business_saving.vb" />
+    <Compile Include="other modules\data_collecting.vb" />
+    <Compile Include="other modules\employee_saving.vb" />
+    <Compile Include="other modules\mod.vb" />
+    <Compile Include="other modules\modforID.vb" />
+    <Compile Include="other modules\saving.vb" />
+    <Compile Include="other modules\saving_itemMaster.vb" />
+    <Compile Include="other modules\saving_po.vb" />
+    <Compile Include="ValidFieldName.Designer.vb">
+      <DependentUpon>ValidFieldName.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ValidFieldName.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="validFieldNameBuyer.Designer.vb">
+      <DependentUpon>validFieldNameBuyer.vb</DependentUpon>
+    </Compile>
+    <Compile Include="validFieldNameBuyer.vb">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Check List.resx">
+      <DependentUpon>Check List.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Client Master.resx">
+      <DependentUpon>Client Master.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\licenses.licx" />
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ValidFieldName.resx">
+      <DependentUpon>ValidFieldName.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="validFieldNameBuyer.resx">
+      <DependentUpon>validFieldNameBuyer.vb</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\app.manifest" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Accounting\Common\Basic 4.5\BASIC NEW\BASIC\Basic\Basic.vbproj">
+      <Project>{c7b64dcc-c7bb-47c1-85ab-a6d7bb1ae8f1}</Project>
+      <Name>Basic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Accounting\Common\Configurations\Configurations.vbproj">
+      <Project>{14181d51-c1fb-46d7-98aa-9d725fe7aaa2}</Project>
+      <Name>Configurations</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+</Project>
