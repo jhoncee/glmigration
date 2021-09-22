@@ -161,14 +161,14 @@ Partial Public Class Client_Master
                 PRJID = get_projectID(PrjNo)
                 If PRJID = 0 Then
                     Try
-                        DB.RollBackAction("Project Code not Found. Line:" & I + 1)
+                        DB.RollBackAction($"Project Code [{PrjNo}] not Found. Line:" & I + 1)
                     Catch esdfx As Exception
                     End Try
                 End If
                 UNITID = GetUnitID(view.GetRowCellValue(I, "Unit Code *").ToString)
                 If UNITID = 0 Then
                     Try
-                        DB.RollBackAction("Unit Code not Found. Line:" & I + 1)
+                        DB.RollBackAction($"Unit Code [{view.GetRowCellValue(I, "Unit Code *").ToString}] not Found. Line:" & I + 1)
                     Catch esdfx As Exception
                     End Try
                 End If
@@ -946,9 +946,7 @@ endhere:
 
 			Dim MOP As String() = New String() {"CASH", "CHECK", "CREDIT CARD", "ONLINE"}
 
-
-
-			Dim ExcelCols As New List(Of String)
+            Dim ExcelCols As New List(Of String)
 			ExcelCols.Clear()
 			For i = 0 To GridView1.Columns.Count - 1
 				ExcelCols.Add(GridView1.Columns(i).FieldName)
@@ -1130,5 +1128,9 @@ endhere:
             End If
         Catch ex As Exception
         End Try
+    End Sub
+
+    Private Sub SimpleButton5_Click(sender As Object, e As EventArgs) Handles SimpleButton5.Click
+        ComboBox1_SelectedIndexChanged(Nothing, Nothing)
     End Sub
 End Class

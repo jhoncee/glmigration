@@ -282,7 +282,7 @@
     Function GetUnitID(ByVal unitN As String) As Integer
         Try
             Dim xx As New DataTable
-            xx = DB.QueryandReturnTable("SELECT IFNULL(UNITID,0)'ID' FROM propmanagement.`tbl_property_unit` WHERE UNITNO = '" & unitN & "'")
+            xx = DB.QueryandReturnTable("SELECT IFNULL(UNITID,0)'ID' FROM propmanagement.`tbl_property_unit` WHERE UNITNO = '" & unitN.Trim & "'")
             If xx.Rows.Count > 0 Then
                 Return xx(0)(0)
             End If

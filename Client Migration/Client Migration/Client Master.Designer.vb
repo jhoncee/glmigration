@@ -43,6 +43,7 @@ Partial Public Class Client_Master
         Me.LabelControl1 = New DevExpress.XtraEditors.LabelControl()
         Me.GridControl1 = New DevExpress.XtraGrid.GridControl()
         Me.GridView1 = New DevExpress.XtraGrid.Views.Grid.GridView()
+        Me.SimpleButton5 = New DevExpress.XtraEditors.SimpleButton()
         CType(Me.tabbedView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.ribbonControl, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.GroupControl1, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -63,7 +64,7 @@ Partial Public Class Client_Master
         Me.ribbonControl.Pages.AddRange(New DevExpress.XtraBars.Ribbon.RibbonPage() {Me.ribbonPage})
         Me.ribbonControl.RibbonStyle = DevExpress.XtraBars.Ribbon.RibbonControlStyle.Office2013
         Me.ribbonControl.ShowApplicationButton = DevExpress.Utils.DefaultBoolean.[False]
-        Me.ribbonControl.Size = New System.Drawing.Size(965, 162)
+        Me.ribbonControl.Size = New System.Drawing.Size(1312, 162)
         Me.ribbonControl.ToolbarLocation = DevExpress.XtraBars.Ribbon.RibbonQuickAccessToolbarLocation.Hidden
         '
         'employeesBarButtonItem
@@ -112,6 +113,7 @@ Partial Public Class Client_Master
         '
         'GroupControl1
         '
+        Me.GroupControl1.Controls.Add(Me.SimpleButton5)
         Me.GroupControl1.Controls.Add(Me.SimpleButton4)
         Me.GroupControl1.Controls.Add(Me.SimpleButton3)
         Me.GroupControl1.Controls.Add(Me.SimpleButton2)
@@ -122,7 +124,7 @@ Partial Public Class Client_Master
         Me.GroupControl1.Location = New System.Drawing.Point(0, 162)
         Me.GroupControl1.Name = "GroupControl1"
         Me.GroupControl1.ShowCaption = False
-        Me.GroupControl1.Size = New System.Drawing.Size(965, 54)
+        Me.GroupControl1.Size = New System.Drawing.Size(1312, 54)
         Me.GroupControl1.TabIndex = 4
         '
         'SimpleButton4
@@ -169,7 +171,7 @@ Partial Public Class Client_Master
         '
         Me.LabelControl1.Location = New System.Drawing.Point(10, 11)
         Me.LabelControl1.Name = "LabelControl1"
-        Me.LabelControl1.Size = New System.Drawing.Size(29, 13)
+        Me.LabelControl1.Size = New System.Drawing.Size(28, 13)
         Me.LabelControl1.TabIndex = 5
         Me.LabelControl1.Text = "Sheet"
         '
@@ -180,7 +182,7 @@ Partial Public Class Client_Master
         Me.GridControl1.MainView = Me.GridView1
         Me.GridControl1.MenuManager = Me.ribbonControl
         Me.GridControl1.Name = "GridControl1"
-        Me.GridControl1.Size = New System.Drawing.Size(965, 298)
+        Me.GridControl1.Size = New System.Drawing.Size(1312, 298)
         Me.GridControl1.TabIndex = 5
         Me.GridControl1.ViewCollection.AddRange(New DevExpress.XtraGrid.Views.Base.BaseView() {Me.GridView1})
         '
@@ -190,11 +192,20 @@ Partial Public Class Client_Master
         Me.GridView1.Name = "GridView1"
         Me.GridView1.OptionsView.ColumnAutoWidth = False
         '
+        'SimpleButton5
+        '
+        Me.SimpleButton5.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.SimpleButton5.Location = New System.Drawing.Point(1236, 8)
+        Me.SimpleButton5.Name = "SimpleButton5"
+        Me.SimpleButton5.Size = New System.Drawing.Size(71, 23)
+        Me.SimpleButton5.TabIndex = 11
+        Me.SimpleButton5.Text = "Reload"
+        '
         'Client_Master
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(965, 514)
+        Me.ClientSize = New System.Drawing.Size(1312, 514)
         Me.Controls.Add(Me.GridControl1)
         Me.Controls.Add(Me.GroupControl1)
         Me.Controls.Add(Me.ribbonControl)
@@ -232,4 +243,5 @@ Partial Public Class Client_Master
     Friend WithEvents SimpleButton3 As DevExpress.XtraEditors.SimpleButton
     Friend WithEvents SimpleButton4 As DevExpress.XtraEditors.SimpleButton
     Friend WithEvents BarButtonItem2 As DevExpress.XtraBars.BarButtonItem
+    Friend WithEvents SimpleButton5 As DevExpress.XtraEditors.SimpleButton
 End Class
