@@ -6,9 +6,10 @@ Public Class UCommand
     Private Connection As MySqlConnection
     Private command As MySqlCommand
     Private Transaction As MySqlTransaction
-    Private isError As Boolean
+    Property isError As Boolean
     Private IsTranactional As Boolean
     Private _LPK As Integer
+
     Public ReadOnly Property LastPK() As Integer
         Get
             Return _LPK
@@ -21,7 +22,9 @@ Public Class UCommand
     End Property
     Sub connect()
         Try
-            Connection = DB.Connection
+            Connection = New MySqlConnection
+            Connection = DB.Connection.Clone
+            Connection.Open()
             command = New MySqlCommand
             command.Connection = Connection
             StartTransaction()
@@ -108,6 +111,16 @@ Public Class UCommand
             Return Nothing
         End Try
     End Function
+    Public Function DataObject(ByVal QueryString As String) As Object
+        Try
+            If isError Then Return Nothing
+            command.CommandText = QueryString
+            Return command.ExecuteScalar()
+        Catch ex As Exception
+            Return Nothing
+        End Try
+    End Function
+
     Public Function SaveChanges(Optional ByVal SaveCustomMsg As String = "") As Boolean
         Try
             If Not IsTranactional Then Return True

@@ -43,16 +43,6 @@ Module ModMethods
             regKey.Close()
         End If
     End Sub
-    Function ServerDateTime() As DateTime
-        Try
-            Dim servtime As New DataTable
-            servtime = Datasource("SELECT CURRENT_TIMESTAMP()")
-            Return CType(servtime(0)(0), DateTime)
-        Catch ex As Exception
-            Return Now
-        End Try
-    End Function
-
     Function GET_GUID() As String
         Try
             Return Guid.NewGuid().ToString()

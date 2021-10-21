@@ -5,12 +5,7 @@ Imports DevExpress.XtraSplashScreen
 Imports MySql.Data.MySqlClient
 Module MAIN_MODULE
     Public CompanyLogo As Image
-    'Public Function Datasource(ByVal command As String) As DataTable
-    '    Return DB.Datasource(command)
-    'End Function
-    'Public Function Dataobject(ByVal command As String, Optional ByVal columnIndex As Integer = 0) As Object
-    '    Return DB.DatasourceRetField(command, columnIndex)
-    'End Function 
+    Property DB As Basic.MYSQL
     Private Timer As Timer
     Public Class MyFlyoutDialog
         Inherits FlyoutDialog
