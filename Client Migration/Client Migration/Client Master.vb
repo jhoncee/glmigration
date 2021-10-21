@@ -101,9 +101,11 @@ Partial Public Class Client_Master
 		Dim cntr As Integer = 0
 		Try
 			Dim view = GridView1
-			Dim DIC As New Dictionary(Of String, String)
-			DB.TransactionStart()
-			Remove()
+            Dim DIC As New Dictionary(Of String, String)
+
+            DB.TransactionStart()
+
+            Remove() '//remove data
             For I As Integer = 0 To GridView1.RowCount - 1
                 cntr = I
                 GUID = GET_GUID()
@@ -904,24 +906,25 @@ endhere:
 			GUID = GET_GUID()
 			Dim View = GridView1
 			View.ClearColumnsFilter()
-			If Validation() = False Then Exit Sub
-            If ComboBox1.Text.ToLower.Contains("buyers") Then
-                SAVE_CLIENT()
-            ElseIf ComboBox1.Text.ToLower.Contains("buyer") Then
+            If Validation() = False Then Exit Sub
+
+            If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
                 SAVE_CLIENT()
             ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
+
                 SAVE_CHARGES()
-				DB.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAIF%';")
-				DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAUD%';")
-				DB.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%W/%';")
-				DB.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%PULL%';")
-				DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%UNCLEARED%';")
-				DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%Unclear%';")
-				DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Cleared' WHERE BankStatus  LIKE 'Clear';")
+
+                DB.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAIF%';")
+                DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAUD%';")
+                DB.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%W/%';")
+                DB.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%PULL%';")
+                DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%UNCLEARED%';")
+                DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%Unclear%';")
+                DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Cleared' WHERE BankStatus  LIKE 'Clear';")
                 DB.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Active' WHERE BankStatus  LIKE 'Cleared';")
                 DB.QueryExecNonQuery("UPDATE propmanagement.paymentschedmain SET SubTotal=original_sell_price-discount1_amount-discount2_amount;")
             Else
-				MessageBox.Show("Template not Fetch")
+                MessageBox.Show("Template not Fetch")
 			End If
 		Catch ex As Exception
 			DB.RollBackAction(ex.Message)

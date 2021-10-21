@@ -165,6 +165,10 @@
     <Compile Include="Client Master.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Database\UCommand.vb" />
+    <Compile Include="Models\BusinessModel.vb" />
+    <Compile Include="Models\ProjectModel.vb" />
+    <Compile Include="Models\UnitModel.vb" />
     <Compile Include="Modules\Bel_modules.vb" />
     <Compile Include="Modules\MAIN_MODULE.vb" />
     <Compile Include="Modules\modCommon.vb" />
