@@ -7,13 +7,13 @@ Public Class UCommand
     Private command As MySqlCommand
     Private Transaction As MySqlTransaction
     Private isError As Boolean
+    Private IsTranactional As Boolean
     Private _LPK As Integer
     Public ReadOnly Property LastPK() As Integer
         Get
             Return _LPK
         End Get
     End Property
-
     Public ReadOnly Property HasError() As Boolean
         Get
             Return isError
@@ -24,16 +24,19 @@ Public Class UCommand
             Connection = DB.Connection
             command = New MySqlCommand
             command.Connection = Connection
-            Transaction = Connection.BeginTransaction
+            StartTransaction()
         Catch ex As Exception
             isError = True
         End Try
     End Sub
-
     Sub New()
         connect()
     End Sub
-
+    Sub StartTransaction()
+        Transaction = Connection.BeginTransaction
+        command.Transaction = Transaction
+        IsTranactional = True
+    End Sub
     Sub QueryExecNonQuery(ByVal queryString As String)
         Try
             If isError Then Exit Sub
@@ -44,8 +47,6 @@ Public Class UCommand
             _LPK = 0
         End Try
     End Sub
-
-
     Public Sub Insert(ByVal tableName As String, ByVal data As Dictionary(Of String, String))
         Try
             If isError Then Exit Sub
@@ -81,7 +82,6 @@ Public Class UCommand
         Catch ex As Exception
         End Try
     End Sub
-
     Public Sub Delete(ByVal tableName As String, Optional ByVal whereParams As String = "")
         Try
             If isError Then Exit Sub
@@ -93,12 +93,10 @@ Public Class UCommand
         Catch ex As Exception
         End Try
     End Sub
-
     Public Function Datasource(ByVal QueryString As String, Optional _fromRow As Integer = 0, Optional ReturnRow As Integer = 0) As DataTable
         Try
             If isError Then Return Nothing
             Dim data As New DataTable
-            If Connection.State = ConnectionState.Closed Then Connection.Open()
             Dim TA = New MySqlDataAdapter(QueryString, Connection)
             If ReturnRow = 0 Then
                 TA.Fill(data)
@@ -110,16 +108,21 @@ Public Class UCommand
             Return Nothing
         End Try
     End Function
-    Public Sub SaveChanges(Optional ByVal SaveCustomMsg As String = "")
+    Public Function SaveChanges(Optional ByVal SaveCustomMsg As String = "") As Boolean
         Try
+            If Not IsTranactional Then Return True
             If isError Then
                 Transaction.Rollback()
+                MessageBoxStr("Transaction completed with error")
             Else
                 Transaction.Commit()
+                MessageBoxStr("Transaction completed successfully.")
             End If
+            Return Not isError
         Catch ex As Exception
+            Return False
         End Try
-    End Sub
+    End Function
 
 #Region "IDisposable Support"
     Private disposedValue As Boolean ' To detect redundant calls

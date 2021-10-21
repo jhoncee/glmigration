@@ -122,7 +122,6 @@
     <Compile Include="CLASS\common\Defaults.vb" />
     <Compile Include="CLASS\common\DispGridWithParam.vb" />
     <Compile Include="CLASS\common\DoubleClickSubEventArgs.vb" />
-    <Compile Include="CLASS\common\IACTIONS.vb" />
     <Compile Include="CLASS\common\JDetails.vb" />
     <Compile Include="CLASS\common\PARAMS.vb" />
     <Compile Include="CLASS\common\Struct.vb" />
@@ -153,6 +152,7 @@
     <Compile Include="CLASS\EquityCls.vb" />
     <Compile Include="CLASS\EXTENSION\ModExt.vb" />
     <Compile Include="CLASS\Image_.vb" />
+    <Compile Include="CLASS\ImportFromExcel.vb" />
     <Compile Include="CLASS\OtherChargesCls.vb" />
     <Compile Include="CLASS\pdc_trackerCls.vb" />
     <Compile Include="CLASS\pdc_transferCls.vb" />
@@ -263,10 +263,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Accounting\Common\Basic 4.5\BASIC NEW\BASIC\Basic\Basic.vbproj">
-      <Project>{c7b64dcc-c7bb-47c1-85ab-a6d7bb1ae8f1}</Project>
-      <Name>Basic</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Accounting\Common\Configurations\Configurations.vbproj">
       <Project>{14181d51-c1fb-46d7-98aa-9d725fe7aaa2}</Project>
       <Name>Configurations</Name>
