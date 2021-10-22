@@ -35,6 +35,7 @@ Partial Public Class Client_Master
         Me.ribbonPage = New DevExpress.XtraBars.Ribbon.RibbonPage()
         Me.ribbonPageGroupNavigation = New DevExpress.XtraBars.Ribbon.RibbonPageGroup()
         Me.GroupControl1 = New DevExpress.XtraEditors.GroupControl()
+        Me.SimpleButton5 = New DevExpress.XtraEditors.SimpleButton()
         Me.SimpleButton4 = New DevExpress.XtraEditors.SimpleButton()
         Me.SimpleButton3 = New DevExpress.XtraEditors.SimpleButton()
         Me.SimpleButton2 = New DevExpress.XtraEditors.SimpleButton()
@@ -43,7 +44,6 @@ Partial Public Class Client_Master
         Me.LabelControl1 = New DevExpress.XtraEditors.LabelControl()
         Me.GridControl1 = New DevExpress.XtraGrid.GridControl()
         Me.GridView1 = New DevExpress.XtraGrid.Views.Grid.GridView()
-        Me.SimpleButton5 = New DevExpress.XtraEditors.SimpleButton()
         CType(Me.tabbedView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.ribbonControl, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.GroupControl1, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -127,9 +127,19 @@ Partial Public Class Client_Master
         Me.GroupControl1.Size = New System.Drawing.Size(1312, 54)
         Me.GroupControl1.TabIndex = 4
         '
+        'SimpleButton5
+        '
+        Me.SimpleButton5.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.SimpleButton5.Location = New System.Drawing.Point(410, 8)
+        Me.SimpleButton5.Name = "SimpleButton5"
+        Me.SimpleButton5.Size = New System.Drawing.Size(84, 23)
+        Me.SimpleButton5.TabIndex = 11
+        Me.SimpleButton5.Text = "Refresh"
+        Me.SimpleButton5.ToolTip = "After Editing Excel"
+        '
         'SimpleButton4
         '
-        Me.SimpleButton4.Location = New System.Drawing.Point(786, 8)
+        Me.SimpleButton4.Location = New System.Drawing.Point(903, 10)
         Me.SimpleButton4.Name = "SimpleButton4"
         Me.SimpleButton4.Size = New System.Drawing.Size(148, 23)
         Me.SimpleButton4.TabIndex = 10
@@ -137,7 +147,7 @@ Partial Public Class Client_Master
         '
         'SimpleButton3
         '
-        Me.SimpleButton3.Location = New System.Drawing.Point(632, 8)
+        Me.SimpleButton3.Location = New System.Drawing.Point(749, 10)
         Me.SimpleButton3.Name = "SimpleButton3"
         Me.SimpleButton3.Size = New System.Drawing.Size(148, 23)
         Me.SimpleButton3.TabIndex = 9
@@ -145,7 +155,7 @@ Partial Public Class Client_Master
         '
         'SimpleButton2
         '
-        Me.SimpleButton2.Location = New System.Drawing.Point(410, 6)
+        Me.SimpleButton2.Location = New System.Drawing.Point(527, 8)
         Me.SimpleButton2.Name = "SimpleButton2"
         Me.SimpleButton2.Size = New System.Drawing.Size(216, 25)
         Me.SimpleButton2.TabIndex = 8
@@ -191,15 +201,6 @@ Partial Public Class Client_Master
         Me.GridView1.GridControl = Me.GridControl1
         Me.GridView1.Name = "GridView1"
         Me.GridView1.OptionsView.ColumnAutoWidth = False
-        '
-        'SimpleButton5
-        '
-        Me.SimpleButton5.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.SimpleButton5.Location = New System.Drawing.Point(1236, 8)
-        Me.SimpleButton5.Name = "SimpleButton5"
-        Me.SimpleButton5.Size = New System.Drawing.Size(71, 23)
-        Me.SimpleButton5.TabIndex = 11
-        Me.SimpleButton5.Text = "Reload"
         '
         'Client_Master
         '

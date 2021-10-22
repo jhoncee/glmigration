@@ -2,9 +2,6 @@
 Partial Public Class Client_Master
 	Private ImportEx As ImportFromExcel
 	Private FileName As String = ""
-	Private CLIENTID As Integer
-	Private UNITID As Integer
-	Private PRJID As Integer
 	Private TransGuid As String
 	Private ChargeID As Integer
 	Private Tdate As Date
@@ -14,8 +11,8 @@ Partial Public Class Client_Master
 	Private Config As New Configurations.DBconfigurations
 
 	Private Units As New List(Of UnitModel)
-	Private Projects As New List(Of ProjectModel)
-	Private Clients As New List(Of BusinessModel)
+	'Private Projects As New List(Of ProjectModel)
+	Private Businesses As New List(Of BusinessModel)
 	Private Buyers As New List(Of BuyersModel)
 	Private paymentschedmainRecords As New List(Of PaymentScheduleMainModel)
 
@@ -70,72 +67,70 @@ Partial Public Class Client_Master
 			MessageBoxError2(ex)
 		End Try
 	End Sub
-	Function IsClientExist(ByVal ClientName As String) As Integer
+	Function GET_BUSINESS(ByVal EntityName As String) As BusinessModel
 		Try
-			Dim IsClient = clients.SingleOrDefault(Function(x) x.Name.ToLower().Trim = ClientName.ToLower().Trim And x.Type.ToLower.Trim = "client")
-			If IsClient?.ID > 0 Then Return IsClient.ID
-			Return 0
+			Dim Client = Businesses.Where(Function(x) x.Name.Trim = EntityName.Trim And x.Type = "CLIENT").LastOrDefault()
+			Return Client
 			'Dim x = DB.QueryandReturnTable("SELECT IFNULL(business_number,0) 'ID' FROM general.`business_list` WHERE business_fullname = '" & ClientName.Trim & "' AND `TYPE`='Client'")
 			'If x.Rows.Count > 0 Then
 			'	Return x(0)(0)
 			'End If
 		Catch ex As Exception
-			Return 0
+			Return Nothing
 		End Try
 	End Function
-	Function SAVE_BUSINESS(db As UCommand, _type As String, _FullName As String) As Integer
+	Sub SAVE_BUSINESS(db As UCommand, NewClient As BusinessModel)
 		Try
-			'SAVE BUSINESS LIST
-			'new Buyer
 			Dim DIC As New Dictionary(Of String, String)
-			DIC = New Dictionary(Of String, String)
-			DIC.Add("business_fullname", _FullName.Trim.RSQ)
-			DIC.Add("`TYPE`", _type)
+			DIC.Add("business_fullname", NewClient.Name.Trim.RSQ)
+			DIC.Add("`TYPE`", NewClient.Type)
 			DIC.Add("`Sheet`", ComboBox1.Text.RSQ)
 			db.Insert("general.business_list", DIC)
-			Return db.LastPK
+			NewClient.ID = db.LastPK
+			Businesses.Add(NewClient)
 		Catch ex As Exception
-			Return 0
 		End Try
-	End Function
+	End Sub
 
 	Sub SAVE_CLIENT(db As UCommand)
-		Dim cntr As Integer = 0
 		Try
 			Dim view = GridView1
 			Dim DIC As New Dictionary(Of String, String)
-			Remove(db) '//remove data
+
 			For I As Integer = 0 To GridView1.RowCount - 1
-				cntr = I
 				TransGuid = Guid.NewGuid().ToString()
-				If view.GetRowCellValue(I, "Buyer Name *").ToString.Trim = "" Then
-					DB.QueryExecNonQuery(" UPDATE propmanagement.tbl_property_unit SET unit_status='AVAILABLE',CurrentBuyerID='0' WHERE UNITNO='" & view.GetRowCellValue(I, "Unit Code *").ToString.Trim.RSQ & "'")
+				Dim clientName As String = If(String.IsNullOrWhiteSpace(view.GetRowCellValue(I, "Buyer Name *").ToString), "", view.GetRowCellValue(I, "Buyer Name *").ToString.Trim)
+				Dim unitCode = If(String.IsNullOrWhiteSpace(view.GetRowCellValue(I, "Unit Code *").ToString.Trim), "", view.GetRowCellValue(I, "Unit Code *").ToString.Trim)
+				'If view.GetRowCellValue(I, "Unit Code *").ToString.Trim = "P05-ET2-02" Then
+				'	Dim tracing = 0
+				'End If
+
+				If unitCode = "" Then Continue For
+				If clientName.ToLower = "unsold" OrElse clientName.ToLower = "not used" Or clientName.ToLower = "un-sold" OrElse clientName.ToLower = "notused" OrElse clientName = "" Then
+					db.QueryExecNonQuery(" UPDATE propmanagement.tbl_property_unit SET unit_status='AVAILABLE',CurrentBuyerID='0' WHERE UNITNO='" & unitCode.Trim.RSQ & "'")
 					Continue For
 				End If
-				If view.GetRowCellValue(I, "Unit Code *").ToString.Trim = "" Then
-					Continue For
-				End If
-				If view.GetRowCellValue(I, "Buyer Name *").ToString.Trim = "Unsold" Or view.GetRowCellValue(I, "Buyer Name *").ToString.Trim = "UNSOLD" Or view.GetRowCellValue(I, "Buyer Name *").ToString.Trim = "NOT USED" Or view.GetRowCellValue(I, "Buyer Name *").ToString.Trim = "NotUsed" Or view.GetRowCellValue(I, "Buyer Name *").ToString.Trim = "" Then
-					db.QueryExecNonQuery(" UPDATE propmanagement.tbl_property_unit SET unit_status='AVAILABLE',CurrentBuyerID='0' WHERE UNITNO='" & view.GetRowCellValue(I, "Unit Code *").ToString.Trim.RSQ & "'")
-					Continue For
-				End If
-				If view.GetRowCellValue(I, "Buyer Name *").ToString.Trim = "Un-Sold" Then
-					db.QueryExecNonQuery(" UPDATE propmanagement.tbl_property_unit SET unit_status='AVAILABLE',CurrentBuyerID='0' WHERE UNITNO='" & view.GetRowCellValue(I, "Unit Code *").ToString.Trim.RSQ & "'")
-					Continue For
-				End If
-				CLIENTID = IsClientExist(view.GetRowCellValue(I, "Buyer Name *").ToString.Trim.RSQ)
-				If CLIENTID > 0 Then
+
+				Dim CLIENT = GET_BUSINESS(view.GetRowCellValue(I, "Buyer Name *").ToString)
+				If CLIENT?.ID > 0 Then
 				Else
-					'SAVE BUSINESS /CLIENT TO BUSINESS LIST
-					CLIENTID = SAVE_BUSINESS(db, "CLIENT", view.GetRowCellValue(I, "Buyer Name *").ToString)
+					CLIENT = New BusinessModel
+					CLIENT.Name = view.GetRowCellValue(I, "Buyer Name *").ToString
+					CLIENT.Type = "CLIENT"
+					CLIENT.Sheet = ComboBox1.Text
+					SAVE_BUSINESS(db, CLIENT)
 				End If
+
+				'GET PROJECT AND UNIT INFO
+				Dim Unit = GET_UNIT(unitCode)
 
 				'SAVE BUYER INFO  main
 				DIC = New Dictionary(Of String, String)
 				DIC.Add("GUID", TransGuid)
-				DIC.Add("BUYERFULLNAME", view.GetRowCellValue(I, "Buyer Name *").ToString.RSQ)
-				DIC.Add("business_id", CLIENTID)
-				DIC.Add("buyer_firstname", view.GetRowCellValue(I, "Buyer Name *").ToString.RSQ)
+				DIC.Add("BUYERFULLNAME", CLIENT.Name.RSQ)
+				DIC.Add("buyer_firstname", CLIENT.Name.RSQ)
+				DIC.Add("business_id", CLIENT.ID)
+				DIC.Add("PropUnitId", Unit.UNITID)
 				DIC.Add("citizenship", view.GetRowCellValue(I, "Citizenship").ToString.RSQ)
 				' DIC.Add("Status", view.GetRowCellValue(I, "Buyer Status").ToString.RSQ)
 				DIC.Add("Sheets", ComboBox1.Text.RSQ.Trim)
@@ -143,213 +138,133 @@ Partial Public Class Client_Master
 				'insert all business that is not in payee table..
 				db.QueryExecNonQuery("INSERT INTO accounting.payee ( BID,PAYEE_NAME)  SELECT business_number,business_fullname FROM  general.business_list  WHERE business_number NOT IN (SELECT BID FROM  accounting.payee)")
 
+				Dim agent = GetAgentInfo(db, If(String.IsNullOrEmpty(view.GetRowCellValue(I, "Agent *")), "", view.GetRowCellValue(I, "Agent *").ToString.Trim))
+				Dim manager = GetAgentInfo(db, If(String.IsNullOrEmpty(view.GetRowCellValue(I, "Manager")), "", view.GetRowCellValue(I, "Manager").ToString.Trim))
+				Dim broker = GetAgentInfo(db, If(String.IsNullOrEmpty(view.GetRowCellValue(I, "Broker")), "", view.GetRowCellValue(I, "Broker").ToString.Trim))
+
 				'SAVE AGENT 
 				DIC = New Dictionary(Of String, String)
 				DIC.Add("GUID", TransGuid)
-				DIC.Add("AgentID", GetAgentInfo(db, view.GetRowCellValue(I, "Agent *").ToString.Trim))
-				DIC.Add("Agent", view.GetRowCellValue(I, "Agent *").ToString.RSQ)
-				DIC.Add("ManagerID", GetManagerInfo(db, view.GetRowCellValue(I, "Manager").ToString.Trim))
-				DIC.Add("Manager", view.GetRowCellValue(I, "Manager").ToString.RSQ)
-				DIC.Add("BrokerID", GetBrokerInfo(db, view.GetRowCellValue(I, "Broker").ToString.Trim))
-				DIC.Add("Broker", view.GetRowCellValue(I, "Broker").ToString.RSQ)
+				DIC.Add("AgentID", agent?.ID)
+				DIC.Add("Agent", agent?.Name.RSQ)
+				DIC.Add("ManagerID", manager?.ID)
+				DIC.Add("Manager", manager?.Name.RSQ)
+				DIC.Add("BrokerID", broker?.ID)
+				DIC.Add("Broker", broker?.Name.RSQ)
 				db.Insert("propmanagement.buyersinfoagents", DIC)
 
-				'GET PROJECT AND UNIT INFO
-				'//////////////////
-				Dim PrjNo As String = ""
-				Dim str = view.GetRowCellValue(I, "Unit Code *").ToString.Trim.Split("-")
-				PrjNo = str(0)
-				PRJID = get_projectID(db, PrjNo)
-				If PRJID = 0 Then
-					db.isError = True
-					MessageBoxStr($"Project Code [{PrjNo}] not Found. Line:" & I + 1)
-				End If
-				UNITID = GetUnitID(db, view.GetRowCellValue(I, "Unit Code *").ToString)
-				If UNITID = 0 Then
-					db.isError = True
-					MessageBoxStr($"Unit Code [{view.GetRowCellValue(I, "Unit Code *").ToString}] not Found. Line:" & I + 1)
-				End If
 				'///////////////// 
 				'SAVE buyer project 
 				DIC = New Dictionary(Of String, String)
 				DIC.Add("GUID", TransGuid)
-				DIC.Add("unit_id", UNITID)
-				DIC.Add("project_id", PRJID)
+				DIC.Add("unit_id", Unit.UNITID)
+				DIC.Add("project_id", Unit.PROJECTID)
 				If IsNumeric(view.GetRowCellValue(I, "Net Selling Price")) Then
 					DIC.Add("total_contract_price", CDbl(view.GetRowCellValue(I, "Net Selling Price")))
 				End If
 				db.Insert("propmanagement.buyersinfoproject", DIC)
 				'SAVE SCHEDULE
-				SAVE_SCHEDULE(db, I)
+				SAVE_SCHEDULE(db, I, CLIENT, Unit)
 				'update Unit
-				db.QueryExecNonQuery(" UPDATE propmanagement.tbl_property_unit SET unit_status='SOLD OUT',CurrentBuyerID='" & CLIENTID & "' WHERE UNITID='" & UNITID & "'")
+				db.QueryExecNonQuery(" UPDATE propmanagement.tbl_property_unit SET unit_status='SOLD OUT',CurrentBuyerID='" & CLIENT.ID & "' WHERE UNITID='" & Unit.UNITID & "'")
 			Next
 		Catch ex As Exception
 		End Try
 	End Sub
-	Function GetCompanyIDbyPrjID(ByVal PrjID As String) As Integer
+	'Function GetCompanyIDbyPrjID(ByVal PrjID As String) As Integer
+	'	Try
+	'		Dim proj = Projects.SingleOrDefault(Function(x) x.PROJECTID = PrjID)
+	'		Return proj.COMPANYID
+	'		'DB.QueryandReturnTable("SELECT title_id FROM general.`setup_project` WHERE project_id = '" & PrjID & "'")
+	'		'If x.Rows.Count > 0 Then
+	'		'	Return x(0)(0)
+	'		'End If
+	'	Catch ex As Exception
+	'		Return 0
+	'	End Try
+	'End Function
+
+	Function GET_UNIT(ByVal unitN As String) As UnitModel
 		Try
-			Dim proj = Projects.SingleOrDefault(Function(x) x.PROJECTID = PrjID)
-			Return proj.COMPANYID
-			'DB.QueryandReturnTable("SELECT title_id FROM general.`setup_project` WHERE project_id = '" & PrjID & "'")
-			'If x.Rows.Count > 0 Then
-			'	Return x(0)(0)
-			'End If
+			Dim UNIT = Units.LastOrDefault(Function(x) x.UNITNO.ToLower.Trim = unitN.ToLower.Trim)
+			Return UNIT
 		Catch ex As Exception
-			Return 0
+			Return Nothing
 		End Try
 	End Function
 
-	Function GetUnitID(db As UCommand, ByVal unitN As String) As Integer
-		Try
-			Dim prj = units.SingleOrDefault(Function(x) x.UNITNO.ToLower.Trim = unitN.ToLower.Trim)
-			Return prj.UNITID
-			'Dim xx As New DataTable
-			'xx = db.dats("SELECT IFNULL(UNITID,0)'ID' FROM propmanagement.`tbl_property_unit` WHERE UNITNO = '" & unitN.Trim & "'")
-			'If xx.Rows.Count > 0 Then Return xx(0)(0)
-			'Return 0
-		Catch ex As Exception
-			Return 0
-		End Try
-	End Function
-
-	Function get_projectID(db As UCommand, ByVal proj_no As String) As Integer
-		Try
-			Dim prj = projects.SingleOrDefault(Function(x) x.PROJNO.ToLower.Trim = proj_no.ToLower.Trim)
-			Return prj?.PROJECTID
-			'Dim xX As New DataTable
-			'xX = db.Datasource("SELECT project_id 'ID' FROM general.`setup_project` WHERE project_no = '" & proj_no & "'")
-			'If xX.Rows.Count > 0 Then
-			'	Return xX(0)(0)
-			'End If
-		Catch ex As Exception
-			Return 0
-		End Try
-	End Function
+	'Function GET_PROJ_ID(ByVal proj_no As String) As Integer
+	'	Try
+	'		Dim prj = Projects.SingleOrDefault(Function(x) x.PROJNO.ToLower.Trim = proj_no.ToLower.Trim)
+	'		Return prj?.PROJECTID
+	'		'Dim xX As New DataTable
+	'		'xX = db.Datasource("SELECT project_id 'ID' FROM general.`setup_project` WHERE project_no = '" & proj_no & "'")
+	'		'If xX.Rows.Count > 0 Then
+	'		'	Return xX(0)(0)
+	'		'End If
+	'	Catch ex As Exception
+	'		Return 0
+	'	End Try
+	'End Function
 
 	'AGENT
-	Function GetAgentInfo(db As UCommand, AgentName As String) As Integer
+	Function GetAgentInfo(db As UCommand, AgentName As String) As BusinessModel
 		Try
-			If AgentName.Trim = "" Then Return 0
-			Dim agent = clients.Where(Function(x) x.Name.ToLower.Trim = AgentName.ToLower.Trim And x.Type.ToLower = "agent").FirstOrDefault()
+			If AgentName.Trim = "" Then Return New BusinessModel
+			Dim agent = Businesses.Where(Function(x) x.Name.Trim = AgentName.Trim And x.Type.ToLower.Trim = "Agent").LastOrDefault
 			If agent IsNot Nothing Then
-				Return agent.ID
+				Return agent
 			Else
-				'SAVE AGENT 
-				Dim DIC As New Dictionary(Of String, String)
-				DIC = New Dictionary(Of String, String)
-				DIC.Add("business_fullname", AgentName.Trim.RSQ)
-				DIC.Add("`TYPE`", "AGENT")
-				DIC.Add("`Sheet`", ComboBox1.Text.RSQ)
-				db.Insert("general.business_list", DIC)
-				Dim mId = db.LastPK
-				clients.Add(New BusinessModel() With {.ID = mId, .Name = AgentName.Trim, .Sheet = ComboBox1.Text, .Type = "AGENT"})
-				Return mId
+				agent = New BusinessModel() With {.Name = AgentName.Trim, .Sheet = ComboBox1.Text, .Type = "Agent"}
+				SAVE_BUSINESS(db, agent)
+				Return agent
 			End If
-
-			'Dim T As New DataTable
-			'T = db.QueryandReturnTable("select business_number,business_fullname FROM  general.business_list where `Type`='Agent' and business_fullname='" & AgentName.Trim.RSQ & "'")
-			'If T.Rows.Count > 0 Then
-			'	Return T(0)("business_number")
-			'Else
-			'	'SAVE AGENT 
-			'	Dim DIC As New Dictionary(Of String, String)
-			'	DIC = New Dictionary(Of String, String)
-			'	DIC.Add("business_fullname", AgentName.Trim.RSQ)
-			'	DIC.Add("`TYPE`", "AGENT")
-			'	DIC.Add("`Sheet`", ComboBox1.Text.RSQ)
-			'	db.Insert("general.business_list", DIC)
-			'	Return db.LastPK
-			'End If
 		Catch ex As Exception
-			Return 0
+			Return New BusinessModel
 		End Try
 	End Function
 	'MANAGER
-	Function GetManagerInfo(db As UCommand, ManagerName As String) As Integer
+	Function GetManagerInfo(db As UCommand, ManagerName As String) As BusinessModel
 		Try
-			If ManagerName.Trim = "" Then Return 0
-			Dim manager = clients.Where(Function(x) x.Name.ToLower.Trim = ManagerName.ToLower.Trim And x.Type.ToLower = "manager").FirstOrDefault()
+			If ManagerName.Trim = "" Then Return New BusinessModel
+			Dim manager = Businesses.Where(Function(x) x.Name.Trim = ManagerName.Trim And x.Type = "Manager").LastOrDefault()
 			If manager IsNot Nothing Then
-				Return manager.ID
+				Return manager
 			Else
-				Dim DIC As New Dictionary(Of String, String)
-				DIC = New Dictionary(Of String, String)
-				DIC.Add("business_fullname", ManagerName.Trim.RSQ)
-				DIC.Add("`TYPE`", "MANAGER")
-				DIC.Add("`Sheet`", ComboBox1.Text.RSQ)
-				db.Insert("general.business_list", DIC)
-				Dim mId = db.LastPK
-				clients.Add(New BusinessModel() With {.ID = mId, .Name = ManagerName.Trim, .Sheet = ComboBox1.Text, .Type = "MANAGER"})
-				Return mId
+				manager = New BusinessModel() With {.Name = ManagerName.Trim, .Sheet = ComboBox1.Text, .Type = "Manager"}
+				SAVE_BUSINESS(db, manager)
+				Return manager
 			End If
 
-			'Dim T As New DataTable
-			'T = db.Datasource("select business_number,business_fullname FROM  general.business_list where `Type`='Manager' and business_fullname='" & ManagerName.Trim.RSQ & "'")
-			'If T.Rows.Count > 0 Then
-			'	Return T(0)("business_number")
-			'Else
-			'	'SAVE AGENT 
-			'	Dim DIC As New Dictionary(Of String, String)
-			'	DIC = New Dictionary(Of String, String)
-			'	DIC.Add("business_fullname", ManagerName.Trim.RSQ)
-			'	DIC.Add("`TYPE`", "MANAGER")
-			'	DIC.Add("`Sheet`", ComboBox1.Text.RSQ)
-			'	db.Insert("general.business_list", DIC)
-			'	Return db.LastPK
-			'End If
 		Catch ex As Exception
-			Return 0
+			Return New BusinessModel
 		End Try
 	End Function
 	'BROKER
-	Function GetBrokerInfo(db As UCommand, BrokerName As String) As Integer
+	Function GetBrokerInfo(db As UCommand, BrokerName As String) As BusinessModel
 		Try
-			If BrokerName.Trim = "" Then Return 0
-			Dim broker = clients.Where(Function(x) x.Name.ToLower.Trim = BrokerName.ToLower.Trim And x.Type.ToLower = "broker").FirstOrDefault()
+			If BrokerName.Trim = "" Then Return New BusinessModel
+			Dim broker = Businesses.Where(Function(x) x.Name.ToLower.Trim = BrokerName.ToLower.Trim And x.Type.ToLower = "BROKER").LastOrDefault()
 			If broker IsNot Nothing Then
-				Return broker.ID
+				Return broker
 			Else
-				Dim DIC As New Dictionary(Of String, String)
-				DIC = New Dictionary(Of String, String)
-				DIC.Add("business_fullname", BrokerName.Trim.RSQ)
-				DIC.Add("`TYPE`", "BROKER")
-				DIC.Add("`Sheet`", ComboBox1.Text.RSQ)
-				db.Insert("general.business_list", DIC)
-				Dim mId = db.LastPK
-				clients.Add(New BusinessModel() With {.ID = mId, .Name = BrokerName.Trim, .Sheet = ComboBox1.Text, .Type = "BROKER"})
-				Return mId
+				broker = New BusinessModel() With {.Name = BrokerName.Trim, .Sheet = ComboBox1.Text, .Type = "BROKER"}
+				SAVE_BUSINESS(db, broker)
+				Return broker
 			End If
-
-			'If BrokerName.Trim = "" Then Return 0
-			'Dim T As New DataTable
-			'T = DB.QueryandReturnTable("select business_number,business_fullname FROM  general.business_list where `Type`='Broker' and business_fullname='" & BrokerName.Trim.RSQ & "'")
-			'If T.Rows.Count > 0 Then
-			'	Return T(0)("business_number")
-			'Else
-			'	'SAVE AGENT 
-			'	Dim DIC As New Dictionary(Of String, String)
-			'	DIC = New Dictionary(Of String, String)
-			'	DIC.Add("business_fullname", BrokerName.Trim.RSQ)
-			'	DIC.Add("`TYPE`", "BROKER")
-			'	DIC.Add("`Sheet`", ComboBox1.Text.RSQ)
-			'	DB.Insert("general.business_list", DIC)
-			'	Return DB.LastPK
-			'End If
-
 		Catch ex As Exception
-			Return 0
+			Return New BusinessModel
 		End Try
 	End Function
-	Sub SAVE_SCHEDULE(db As UCommand, i As Integer)
+	Sub SAVE_SCHEDULE(db As UCommand, i As Integer, Client As BusinessModel, Unit As UnitModel)
 		Try
 			Dim Discount1 As Decimal = 0, Discount2 As Decimal = 0
 			Dim VIEW = GridView1
 			Dim DIC As New Dictionary(Of String, String)
-			DIC.Add("PRJID", PRJID)
-			DIC.Add("UNITID", UNITID)
+			DIC.Add("PRJID", Unit.PROJECTID)
+			DIC.Add("UNITID", Unit.UNITID)
 			DIC.Add("GUID", TransGuid)
-			DIC.Add("CLIENTID", CLIENTID)
+			DIC.Add("CLIENTID", Client.ID)
 			DIC.Add("BUYERGUID", TransGuid)
 			DIC.Add("trans_date", Tdate.ToMysqlFormat)
 			DIC.Add("no_months", 0) ' VIEW.GetRowCellValue(i, "Deferred Months"))
@@ -427,10 +342,10 @@ Partial Public Class Client_Master
 		Catch ex As Exception
 		End Try
 	End Sub
-	Function GetSchedGUID() As String
+	Function GetSchedGUID(client As BusinessModel, unit As UnitModel) As String
 		Try
-			Dim item = paymentschedmainRecords.SingleOrDefault(Function(x) x.CLIENTID = CLIENTID And x.UNITID = UNITID)
-			Return item.GUID
+			Dim item = paymentschedmainRecords.Where(Function(x) x.CLIENTID = client.ID And x.UNITID = unit.UNITID).LastOrDefault
+			Return item?.GUID
 			'Return db.DataObject("SELECT GUID FROM   propmanagement.paymentschedmain WHERE CLIENTID='" & CLIENTID & "' AND UNITID='" & UNITID & "'")
 		Catch ex As Exception
 			Return ""
@@ -474,13 +389,13 @@ Partial Public Class Client_Master
 	'Function GetUnitInfo(db As UCommand, UNIT As String) As DataTable
 	'	Return db.QueryandReturnTable("select * from  propmanagement.tbl_property_unit WHERE UNITNO='" & UNIT.RSQ & "'")
 	'End Function
-	Function GetBuyer(db As UCommand) As Integer
+	Function GET_BUYER(CLIENT As BusinessModel, Unit As UnitModel) As BuyersModel
 		Try
-			Dim buyer = Buyers.SingleOrDefault(Function(x) x.CLIENTID = CLIENTID)
-			Return buyer.ID
+			Dim buyer = Buyers.Where(Function(x) x.CLIENTID = CLIENT.ID And x.UNITID = Unit.UNITID).LastOrDefault
+			Return buyer
 			'Return DataObject("SELECT ID FROM propmanagement.buyersinfomain WHERE business_id='" & CLIENTID & "'")
 		Catch ex As Exception
-			Return 0
+			Return Nothing
 		End Try
 	End Function
 
@@ -512,14 +427,30 @@ Partial Public Class Client_Master
 					Return False
 				End If
 			Next
+
+			For I As Integer = 0 To GridView1.RowCount - 1
+				Dim view = GridView1
+				Dim Unit = GET_UNIT(view.GetRowCellValue(I, "Unit Code *").ToString())
+				If Unit Is Nothing Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr($"Unit Code [{view.GetRowCellValue(I, "Unit Code *")}] is not Found. Line:" & I + 1)
+					Return False
+				End If
+			Next
 			Return True
 		Catch ex As Exception
 			Return False
 		End Try
 	End Function
-	Function Validation() As Boolean
+	Async Function Validation(db As UCommand) As Task(Of Boolean)
 		Try
 			Dim View = GridView1
+			Await Remove(db)
+			Dim loaded = loadData(db)
+			If Not loaded Then
+				MessageBoxStr("Cannot continue, Data is not loaded")
+				Return False
+			End If
 			If View.RowCount = 0 Then
 				MessageBoxStr("Nothing to save")
 				Return False
@@ -541,11 +472,9 @@ Partial Public Class Client_Master
 					Return False
 				End If
 				'need to have a client Name
-				If ComboBox1.Text.Trim.ToString.ToLower.Contains("payment") Then
-					If ComboBox1.Text.Trim.ToString.ToLower.Contains("buyer") And View.GetRowCellValue(i, "Buyer Name *").ToString.Trim = "" Then
-						MessageBoxStr("Invalid Client Name Line:" & i + 1)
-						Return False
-					End If
+				If ComboBox1.Text.Trim.ToString.ToLower.Contains("buyer") And View.GetRowCellValue(i, "Buyer Name *").ToString.Trim = "" Then
+					MessageBoxStr("Invalid Client Name Line:" & i + 1)
+					Return False
 				End If
 			Next
 			Return True
@@ -558,103 +487,28 @@ Partial Public Class Client_Master
 		Try
 			Dim cNTR As Integer = 0
 			Dim View = GridView1
-			Remove(db)
+
 			Dim DIC As New Dictionary(Of String, String)
 			cNTR = 0
 			'SAVE CHARGES AND PAYMENTS
 
 			For I As Integer = 0 To GridView1.RowCount - 1
 				cNTR += 1
-				Dim PrjNo As String = ""
 				CashierPK = 0
-				Dim str = View.GetRowCellValue(I, "Unit Code *").ToString.Trim.Split("-")
-				PrjNo = str(0)
-				If PrjNo.Trim = "" Then
-					db.isError = True
-					MessageBoxStr("Invalid project . line: " & I + 1)
-					Exit Sub
-				End If
-				If View.GetRowCellValue(I, "Charge Name *").ToString.Trim = "" Then
-					db.isError = True
-					MessageBoxStr("Invalid Charge Name. line: " & I + 1)
-					Exit Sub
-				End If
-				If View.GetRowCellValue(I, "Particulars *").ToString.Trim = "" Then
-					db.isError = True
-					MessageBoxStr("Invalid Particulars. line: " & I + 1)
-					Exit Sub
-				End If
-				PRJID = get_projectID(db, PrjNo)
-				If PRJID = 0 Then
-					db.isError = True
-					MessageBoxStr("Project Code not Found. Line:" & I + 1)
-					Exit Sub
-				End If
-				UNITID = GetUnitID(db, View.GetRowCellValue(I, "Unit Code *"))
-				If UNITID = 0 Then
-					db.isError = True
-					MessageBoxStr("Unit Code not Found. Line:" & I + 1)
-					Exit Sub
-				End If
-				CLIENTID = IsClientExist(View.GetRowCellValue(I, "Buyer Name *").ToString.Trim.RSQ)
-				If CLIENTID = 0 Then
-					db.isError = True
-					MessageBoxStr("Client Not Found. line: " & I + 1)
-					Exit Sub
-				End If
-				Dim BuyerID As Integer = GetBuyer(db)
-				If BuyerID = 0 Then
-					db.isError = True
-					MessageBoxStr("Invalid Buyer- Line:  " & I + 1)
-					Exit Sub
-				End If
-				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
-					If View.GetRowCellValue(I, "Check Status").ToString.Trim = "" Then
-						db.isError = True
-						MessageBoxStr("Invalid Check Status @Line:  " & I + 1)
-						Exit Sub
-					End If
-				End If
-
-				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
-					Dim Amt As Double = 0
-					If IsNumeric(GridView1.GetRowCellValue(I, "Amount2")) Then
-						Amt = CDbl(View.GetRowCellValue(I, "Amount2"))
-					End If
-					If Amt = 0 Then
-						If IsNumeric(GridView1.GetRowCellValue(I, "Amount")) Then
-							Amt = CDbl(View.GetRowCellValue(I, "Amount"))
-						End If
-					End If
-					If Amt = 0 Then
-						db.isError = True
-						MessageBoxStr("Invalid amount @line:  " & I + 1)
-						Exit Sub
-					End If
-				End If
-
-				If View.GetRowCellValue(I, "Charge Name *").ToString.Trim <> "" And View.GetRowCellValue(I, "Particulars *").ToString.Trim = "" Then
-					db.isError = True
-					MessageBoxStr("Invalid Particulars @line:  " & I + 1)
-					Exit Sub
-				End If
-				TransGuid = GetSchedGUID()
-				If TransGuid = "" Then
-					db.isError = True
-					MessageBoxStr("Cannot Locate Payment Schedule. line: " & I + 1)
-					Exit Sub
-				End If
+				Dim CLIENT = GET_BUSINESS(View.GetRowCellValue(I, "Buyer Name *").ToString)
+				Dim Unit = GET_UNIT(View.GetRowCellValue(I, "Unit Code *").ToString())
+				Dim BuyerInfo = GET_BUYER(CLIENT, Unit)
+				TransGuid = GetSchedGUID(CLIENT, Unit)
 
 				DIC = New Dictionary(Of String, String)
 				DIC.Add("GUID", TransGuid)
-				DIC.Add("BUYERID", BuyerID)
-				DIC.Add("BID", CLIENTID)
-				DIC.Add("BuyerName", GridView1.GetRowCellValue(I, "Buyer Name *").ToString.RSQ)
-				DIC.Add("UNITID", UNITID)
-				DIC.Add("UNITNO", GridView1.GetRowCellValue(I, "Unit Code *").ToString.RSQ.Trim)
-				DIC.Add("PRJID", PRJID)
-				DIC.Add("TITLEID", GetCompanyIDbyPrjID(PRJID))
-
+				DIC.Add("BUYERID", BuyerInfo.ID)
+				DIC.Add("BID", CLIENT.ID)
+				DIC.Add("BuyerName", CLIENT.Name.RSQ)
+				DIC.Add("UNITID", Unit.UNITID)
+				DIC.Add("UNITNO", Unit.UNITNO.RSQ)
+				DIC.Add("PRJID", Unit.PROJECTID)
+				DIC.Add("TITLEID", Unit.COMPANYID)
 				DIC.Add("Date_description", GridView1.GetRowCellValue(I, "Particulars *").ToString.Trim.RSQ)
 				DIC.Add("PMTTYPE", GridView1.GetRowCellValue(I, "Payment Scheme").ToString.Trim.RSQ)
 				DIC.Add("VisibleInReceivedPmt", 1)
@@ -668,7 +522,7 @@ Partial Public Class Client_Master
 					DIC.Add("DueDate", CDate(GridView1.GetRowCellValue(I, "Due Date *")).ToMysqlFormat)
 				End If
 
-				''' for PMT status 
+				'for PMT status 
 				Dim DueAmt As Double = 0
 				Dim Amt1 As Double = 0
 				Dim Amt2 As Double = 0
@@ -697,37 +551,30 @@ Partial Public Class Client_Master
 				'        End If
 				'    End If
 				'End If
-				Try
-					DIC.Add("PMTSTAT", GridView1.GetRowCellValue(I, "Payments Status"))
-				Catch ex As Exception
-					db.isError = True
-					MessageBoxStr("Invalid Payment Status @line:  " & I + 1)
-					Exit Sub
-				End Try
 
+				DIC.Add("PMTSTAT", GridView1.GetRowCellValue(I, "Payments Status").ToString)
 				db.Insert("propmanagement.allcharges", DIC)
 				ChargeID = db.LastPK
-
-				''' save schedule 
-				SAVE_SCHED_DETAILS(db, I)
+				SAVE_SCHED_DETAILS(db, I) 'save schedule 
 				'//Update loan takeout amount
 				If IsNumeric(GridView1.GetRowCellValue(I, "Due Amount *")) Then
 					If GridView1.GetRowCellValue(I, "Charge Name *").ToString.ToLower.Contains("balance") Then
-						db.QueryExecNonQuery("Update propmanagement.paymentschedmain set take_out_loan_amount='" & CDbl(GridView1.GetRowCellValue(I, "Due Amount *")) & "' where UNITID='" & UNITID & "' and CLIENTID='" & CLIENTID & "' ")
+						db.QueryExecNonQuery("Update propmanagement.paymentschedmain set take_out_loan_amount='" & CDbl(GridView1.GetRowCellValue(I, "Due Amount *")) & "' where UNITID='" & Unit.UNITID & "' and CLIENTID='" & CLIENT.ID & "' ")
 					ElseIf GridView1.GetRowCellValue(I, "Charge Name *").ToString.ToLower.Contains("loan") Then
-						db.QueryExecNonQuery("Update propmanagement.paymentschedmain set take_out_loan_amount='" & CDbl(GridView1.GetRowCellValue(I, "Due Amount *")) & "' where UNITID='" & UNITID & "' and CLIENTID='" & CLIENTID & "' ")
+						db.QueryExecNonQuery("Update propmanagement.paymentschedmain set take_out_loan_amount='" & CDbl(GridView1.GetRowCellValue(I, "Due Amount *")) & "' where UNITID='" & Unit.UNITID & "' and CLIENTID='" & CLIENT.ID & "' ")
 					ElseIf GridView1.GetRowCellValue(I, "Charge Name *").ToString.ToLower.Contains("takeout") Then
-						db.QueryExecNonQuery("Update propmanagement.paymentschedmain set take_out_loan_amount='" & CDbl(GridView1.GetRowCellValue(I, "Due Amount *")) & "' where UNITID='" & UNITID & "' and CLIENTID='" & CLIENTID & "' ")
+						db.QueryExecNonQuery("Update propmanagement.paymentschedmain set take_out_loan_amount='" & CDbl(GridView1.GetRowCellValue(I, "Due Amount *")) & "' where UNITID='" & Unit.UNITID & "' and CLIENTID='" & CLIENT.ID & "' ")
 					End If
 				End If
-				Save_to_cashier(db, I)
-				SAVE_APPLIED_PAYMENT(db, I)
-				SAVE_RESERVATION(db, I)
+				Save_to_cashier(db, I, CLIENT, Unit)
+				SAVE_APPLIED_PAYMENT(db, I, CLIENT, Unit)
+				SAVE_RESERVATION(db, I, CLIENT, Unit)
 			Next
 		Catch ex As Exception
+			db.isError = True
 		End Try
 	End Sub
-	Sub SAVE_RESERVATION(db As UCommand, I As Integer)
+	Sub SAVE_RESERVATION(db As UCommand, I As Integer, Client As BusinessModel, Unit As UnitModel)
 		Try
 			Dim View = GridView1
 			If View.GetRowCellValue(I, "Charge Name *").ToString.ToLower.Contains("RF") Or GridView1.GetRowCellValue(I, "Charge Name *").ToString.ToLower.Contains("RESERVATION") Or GridView1.GetRowCellValue(I, "Charge Name *").ToString.ToLower.Contains("RF FEE") Or GridView1.GetRowCellValue(I, "Charge Name *").ToString.ToLower.Contains("RF FEES") Then
@@ -743,17 +590,18 @@ Partial Public Class Client_Master
 					End If
 				End If
 				If Amt = 0 Then Exit Sub
-				db.QueryExecNonQuery("INSERT INTO  reservation SET GUID='" & TransGuid & "', AMT='" & Amt & "', UNITID='" & UNITID & "', UNITNO='" & View.GetRowCellValue(I, "Unit Code *").ToString.Trim.RSQ & "', CLIENTID='" & CLIENTID & "', CustName='" & View.GetRowCellValue(I, "Buyer Name *").ToString.Trim.RSQ & "', RSDate='" & CDate(View.GetRowCellValue(I, "Posting Date")).ToMysqlFormat & "'")
+				db.QueryExecNonQuery("INSERT INTO  reservation SET GUID='" & TransGuid & "', AMT='" & Amt & "', UNITID='" & Unit.UNITID & "', UNITNO='" & Unit.UNITNO.RSQ & "', CLIENTID='" & Client.ID & "', CustName='" & Client.Name.RSQ & "', RSDate='" & CDate(View.GetRowCellValue(I, "Posting Date")).ToMysqlFormat & "'")
 			End If
 		Catch ex As Exception
 		End Try
 	End Sub
-	Sub SAVE_APPLIED_PAYMENT(db As UCommand, I As Integer)
+	Sub SAVE_APPLIED_PAYMENT(db As UCommand, I As Integer, Client As BusinessModel, Unit As UnitModel)
 		Try
 			Dim VIEW = GridView1
 			Dim Applied As New Dictionary(Of String, String)
 			If VIEW.GetRowCellValue(I, "MOP *").ToString.Trim = "" Then Exit Sub
 			If VIEW.GetRowCellValue(I, "Check Status").ToString.Trim.ToLower <> "cleared" Then Exit Sub
+
 			'IF AMOUNT IS GREATER THAN ZERO
 			Dim Amt As Double = 0
 			Dim Bank As String = ""
@@ -771,12 +619,12 @@ Partial Public Class Client_Master
 			Applied.Add("CashierGUID", TransGuid)
 			Applied.Add("CashierID", CashierPK)
 			Applied.Add("GUID", TransGuid)
-			Applied.Add("CMPID", GetCompanyIDbyPrjID(PRJID))
-			Applied.Add("PROJECTID", PRJID)
-			Applied.Add("UNITID", UNITID)
-			Applied.Add("UNITNO", VIEW.GetRowCellValue(I, "Unit Code *").ToString.RSQ)
-			Applied.Add("CUSTOMERID", CLIENTID)
-			Applied.Add("Customer", VIEW.GetRowCellValue(I, "Buyer Name *").ToString.RSQ)
+			Applied.Add("CMPID", Unit.COMPANYID)
+			Applied.Add("PROJECTID", Unit.PROJECTID)
+			Applied.Add("UNITID", Unit.UNITID)
+			Applied.Add("UNITNO", Unit.UNITNO.RSQ)
+			Applied.Add("CUSTOMERID", Client.ID)
+			Applied.Add("Customer", Client.Name.RSQ)
 			Applied.Add("Description", GridView1.GetRowCellValue(I, "Particulars *").ToString.Trim.RSQ)
 			Applied.Add("MOP", VIEW.GetRowCellValue(I, "MOP *"))
 			Applied.Add("ORNum", VIEW.GetRowCellValue(I, "OR #").ToString.RSQ)
@@ -846,7 +694,7 @@ Partial Public Class Client_Master
 		End Try
 	End Sub
 
-	Sub Save_to_cashier(db As UCommand, I As Integer)
+	Sub Save_to_cashier(db As UCommand, I As Integer, Client As BusinessModel, Unit As UnitModel)
 		Try
 			Dim VIEW = GridView1
 			If VIEW.GetRowCellValue(I, "MOP *").ToString.Trim = "" Then Exit Sub
@@ -862,13 +710,11 @@ Partial Public Class Client_Master
 				End If
 			End If
 			If Amt = 0 Then Exit Sub
-
 			If VIEW.GetRowCellValue(I, "MOP *").ToString.Trim = "Cash" Then
 				Bank = VIEW.GetRowCellValue(I, "Bank").ToString.Trim & " " & VIEW.GetRowCellValue(I, "Account Ref ").ToString.Trim
 			Else
 				Bank = VIEW.GetRowCellValue(I, "MOP *").ToString.Trim
 			End If
-
 			If VIEW.GetRowCellValue(I, "Bank").ToString.RSQ.Trim.ToLower <> "" Then
 				Bank = VIEW.GetRowCellValue(I, "Bank").ToString.Trim
 			ElseIf VIEW.GetRowCellValue(I, "Account Ref ").ToString.RSQ.Trim.ToLower <> "" Then
@@ -877,24 +723,16 @@ Partial Public Class Client_Master
 				Bank = VIEW.GetRowCellValue(I, "MOP *").ToString.Trim
 			End If
 
-			Select Case VIEW.GetRowCellValue(I, "MOP *").ToString.ToLower.Trim
-				Case "check", "cash", "online", "credit card"
-				Case Else
-					db.isError = True
-					MessageBoxStr(String.Format("{0} is not identified @ row{1}", VIEW.GetRowCellValue(I, "MOP *").ToString.Trim, I))
-			End Select
-
 			Dim cashier As New Dictionary(Of String, String)
-			cashier = New Dictionary(Of String, String)
 			With cashier
 				.Add("PMTRREF", "")
 				.Add("Description", GridView1.GetRowCellValue(I, "Particulars *").ToString.Trim.RSQ)
-				.Add("UNITID", UNITID)
+				.Add("UNITID", Unit.UNITID)
 				.Add("UNITNO", VIEW.GetRowCellValue(I, "Unit Code *").ToString.Trim.RSQ)
-				.Add("PROJECTID", PRJID)
-				.Add("CUSTOMERID", CLIENTID)
-				.Add("Customer", VIEW.GetRowCellValue(I, "Buyer Name *").ToString.Trim.RSQ)
-				.Add("CMPID", GetCompanyIDbyPrjID(PRJID))
+				.Add("PROJECTID", Unit.PROJECTID)
+				.Add("CUSTOMERID", Client.ID)
+				.Add("Customer", Client.Name.RSQ)
+				.Add("CMPID", Unit.COMPANYID)
 				.Add("ARNum", VIEW.GetRowCellValue(I, "AR # *").ToString.Trim.RSQ)
 				.Add("GUID", TransGuid)
 				.Add("AllChargeGUID", TransGuid)
@@ -944,32 +782,31 @@ Partial Public Class Client_Master
 				End If
 
 			End With
-			db.Insert("propmanagement.cashierpayment_Bk", cashier)
+			'db.Insert("propmanagement.cashierpayment_Bk", cashier)
 			db.Insert("propmanagement.cashierpayment", cashier)
 			CashierPK = db.LastPK
 		Catch ex As Exception
-			db.isError = True
 		End Try
 	End Sub
 
-	Private Sub BarButtonItem1_ItemClick(sender As Object, e As DevExpress.XtraBars.ItemClickEventArgs) Handles BarButtonItem1.ItemClick
+	Private Async Sub BarButtonItem1_ItemClick(sender As Object, e As DevExpress.XtraBars.ItemClickEventArgs) Handles BarButtonItem1.ItemClick
 		Try
 			SplashScreenManager.ShowDefaultWaitForm()
 		Catch ex As Exception
 		End Try
 		Try
-			loadData()
 			TransGuid = Guid.NewGuid().ToString()
 			Dim View = GridView1
 			View.ClearColumnsFilter()
-			If Validation() = False Then Exit Sub
 			If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
 				Using db As New UCommand
+					If Await Validation(db) = False Then Exit Sub
 					SAVE_CLIENT(db)
 					db.SaveChanges()
 				End Using
 			ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
 				Using db As New UCommand
+					If Await Validation(db) = False Then Exit Sub
 					SAVE_CHARGES(db)
 					db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAIF%';")
 					db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAUD%';")
@@ -1060,7 +897,6 @@ Partial Public Class Client_Master
 			'check MOps
 			For Each i In EXcelMOP
 				validationcounter += 1
-
 				If i.Trim = "" Then
 					Continue For
 				End If
@@ -1078,6 +914,105 @@ Partial Public Class Client_Master
 					Return False
 				End If
 			Next
+
+			For I As Integer = 0 To GridView1.RowCount - 1
+				Dim View = GridView1
+				If View.GetRowCellValue(I, "Charge Name *").ToString.Trim = "" Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Invalid Charge Name. line: " & I + 1)
+					Return False
+				End If
+				If View.GetRowCellValue(I, "Particulars *").ToString.Trim = "" Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Invalid Particulars. line: " & I + 1)
+					Return False
+				End If
+				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
+					Dim Amt As Double = 0
+					If IsNumeric(GridView1.GetRowCellValue(I, "Amount2")) Then
+						Amt = CDbl(View.GetRowCellValue(I, "Amount2"))
+					End If
+					If Amt = 0 Then
+						If IsNumeric(GridView1.GetRowCellValue(I, "Amount")) Then
+							Amt = CDbl(View.GetRowCellValue(I, "Amount"))
+						End If
+					End If
+					If Amt = 0 Then
+						GridView1.FocusedRowHandle = I
+						MessageBoxStr("Invalid amount @line:  " & I + 1)
+						Return False
+					End If
+				End If
+				If View.GetRowCellValue(I, "Charge Name *").ToString.Trim <> "" And View.GetRowCellValue(I, "Particulars *").ToString.Trim = "" Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Invalid Particulars @line:  " & I + 1)
+					Return False
+				End If
+
+				If String.IsNullOrWhiteSpace(GridView1.GetRowCellValue(I, "Payments Status")) Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Invalid Payment Status @Line:  " & I + 1)
+					Return False
+				End If
+				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
+					If View.GetRowCellValue(I, "Check Status").ToString.Trim = "" Then
+						GridView1.FocusedRowHandle = I
+						MessageBoxStr("Invalid Check Status @Line:  " & I + 1)
+						Return False
+					End If
+				End If
+
+				Select Case View.GetRowCellValue(I, "MOP *").ToString.ToLower.Trim
+					Case "check", "cash", "online", "credit card", ""
+					Case Else
+						MessageBoxStr($"MOP [{View.GetRowCellValue(I, "MOP *").ToString.Trim}]  @ row{I} is  not defined")
+						Return False
+				End Select
+
+				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
+					Dim Amt As Double = 0
+					If IsNumeric(GridView1.GetRowCellValue(I, "Amount2")) Then
+						Amt = CDbl(View.GetRowCellValue(I, "Amount2"))
+					End If
+					If Amt = 0 Then
+						If IsNumeric(GridView1.GetRowCellValue(I, "Amount")) Then
+							Amt = CDbl(View.GetRowCellValue(I, "Amount"))
+						End If
+					End If
+
+					If Amt = 0 Then
+						MessageBoxStr("Invalid amount @line:  " & I + 1)
+						Return False
+					End If
+				End If
+
+				Dim Unit = GET_UNIT(View.GetRowCellValue(I, "Unit Code *").ToString.Trim)
+				If Unit Is Nothing Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Unit Code not Found. Line:" & I + 1)
+					Return False
+				End If
+
+				Dim CLIENT = GET_BUSINESS(View.GetRowCellValue(I, "Buyer Name *").ToString)
+				If CLIENT Is Nothing Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Client Not Found. line: " & I + 1)
+					Return False
+				End If
+
+				Dim Buyer = GET_BUYER(CLIENT, Unit)
+				If Buyer Is Nothing Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Cannot locate buyer for this Unit:  @row" & I + 1)
+					Return False
+				End If
+
+				If GetSchedGUID(CLIENT, Unit) = "" Then
+					GridView1.FocusedRowHandle = I
+					MessageBoxStr("Cannot Locate Payment Schedule. line: " & I + 1)
+					Return False
+				End If
+			Next
 			Return True
 		Catch ex As Exception
 			MessageBoxStr(ex.Message)
@@ -1091,7 +1026,7 @@ Partial Public Class Client_Master
 	'Function GetAcccountName(S As String)
 	'	Return DB.QueryandReturnObject("SELECT  account_description FROM accounting.account_setup WHERE account_code='" & S.Trim.RSQ & "'")
 	'End Function
-	Sub Remove(db As UCommand)
+	Async Function Remove(db As UCommand) As Task(Of Boolean)
 		Try
 			If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
 				db.Delete("general.business_list", "Sheet='" & ComboBox1.Text.RSQ & "'")
@@ -1108,100 +1043,97 @@ Partial Public Class Client_Master
 				db.Delete("propmanagement.tbl_othercharges_schedule", "GUID not in (select GUID from propmanagement.allcharges)")
 				db.Delete("propmanagement.reservation", "GUID not in (select GUID from propmanagement.allcharges)")
 			End If
+			Return True
 		Catch ex As Exception
+			Return False
 		End Try
-	End Sub
-	Private Sub SimpleButton2_Click(sender As Object, e As EventArgs) Handles SimpleButton2.Click
+	End Function
+	Private Async Sub SimpleButton2_Click(sender As Object, e As EventArgs) Handles SimpleButton2.Click
 		Try
 			If Not MessageContinueRemove() Then Exit Sub
 			Using db As New UCommand
-				Remove(db)
+				Await Remove(db)
 				db.SaveChanges()
 			End Using
 		Catch ex As Exception
 		End Try
 	End Sub
-
-	Sub loadData()
+	Function loadData(Command As UCommand) As Boolean
 		Try
 			Units.Clear()
-			Projects.Clear()
-			Clients.Clear()
+			Businesses.Clear()
 			Buyers.Clear()
 			paymentschedmainRecords.Clear()
 
-			Using Command As New UCommand
-				'//LOAD UNITS
-				Dim unitdata = Command.Datasource($"SELECT  UNITID,PRJID,TITLE_ID 'COMPANYID',UNITNO,UNITNAME  ,PROJECT_NO 'PROJECTNO'  FROM propmanagement.tbl_property_unit INNER JOIN general.setup_project  ON PROJECT_ID=PRJID")
-				Dim projectData = Command.Datasource($" SELECT  project_id,title_id,Main_office_id,project,project_no,project_name ,STATUS FROM general.setup_project")
-				Dim CLIENTDATA = Command.Datasource($"SELECT IFNULL(business_number,0) 'ID',business_fullname ,Type ,Sheet FROM general.`business_list` WHERE `TYPE`='Client'")
-				Dim BUYERSDATA = Command.Datasource($"SELECT ID,business_id,BUYERFULLNAME FROM propmanagement.buyersinfomain")
-				Dim PAYMENTSCHEMDATA = Command.Datasource($"select ID,GUID,UNITID,PRJID,CLIENTID,BUYERGUID from propmanagement.paymentschedmain")
+			'//LOAD UNITS
+			Dim unitdata = Command.Datasource($"SELECT  UNITID,PRJID,TITLE_ID 'COMPANYID',UNITNO,UNITNAME  ,PROJECT_NO 'PROJECTNO'  FROM propmanagement.tbl_property_unit INNER JOIN general.setup_project  ON PROJECT_ID=PRJID")
+			'Dim projectData = Command.Datasource($" SELECT  project_id,title_id,Main_office_id,project,project_no,project_name ,STATUS FROM general.setup_project")
+			Dim CLIENTDATA = Command.Datasource($"SELECT IFNULL(business_number,0) 'ID',business_fullname ,Type ,Sheet FROM general.`business_list` WHERE `Type`!='SUPPLIER'")
+			Dim BUYERSDATA = Command.Datasource($"SELECT ID,business_id,BUYERFULLNAME,PropUnitId FROM propmanagement.buyersinfomain")
+			Dim PAYMENTSCHEMDATA = Command.Datasource($"select ID,GUID,UNITID,PRJID,CLIENTID,BUYERGUID from propmanagement.paymentschedmain")
 
-				If unitdata.Rows.Count > 0 Then
-					For Each i In unitdata.Rows
-						Dim item As New UnitModel()
-						item.UNITID = i("UNITID")
-						item.PROJECTID = i("PRJID")
-						item.COMPANYID = i("COMPANYID")
-						item.UNITNO = i("UNITNO")
-						item.UNITNAME = i("UNITNAME")
-						item.PROJECTNO = i("PROJECTNO")
-						Units.Add(item)
-					Next
-				End If
-				If projectData.Rows.Count > 0 Then
-					For Each i In projectData.Rows
-						Dim item As New ProjectModel()
-						item.PROJECTID = i("project_id")
-						item.COMPANYID = i("title_id")
-						item.PROJMAINID = i("Main_office_id")
-						item.PROJTYPE = i("project")
-						item.PROJNO = i("project_no")
-						item.PROJNAME = i("project_name")
-						item.STATUS = i("STATUS")
-						Projects.Add(item)
-					Next
-				End If
-				If CLIENTDATA.Rows.Count > 0 Then
-					For Each i In CLIENTDATA.Rows
-						Dim item As New BusinessModel()
-						item.ID = i("ID")
-						item.Name = i("business_fullname")
-						item.Sheet = i("Sheet")
-						item.Type = i("Type")
-						Clients.Add(item)
-					Next
-				End If
-				If BUYERSDATA.Rows.Count > 0 Then
-					For Each i In BUYERSDATA.Rows
-						Dim item As New BuyersModel()
-						item.ID = i("ID")
-						item.CLIENTID = i("business_id")
-						item.BUYERFULLNAME = i("BUYERFULLNAME")
-						Buyers.Add(item)
-					Next
-				End If
-				If PAYMENTSCHEMDATA.Rows.Count > 0 Then
-					For Each i In PAYMENTSCHEMDATA.Rows
-						Dim item As New PaymentScheduleMainModel()
-						item.ID = i("ID")
-						item.GUID = i("GUID")
-						item.UNITID = i("UNITID")
-						item.PRJID = i("PRJID")
-						item.CLIENTID = i("CLIENTID")
-						item.BUYERGUID = i("BUYERGUID")
-						item.CLIENTID = i("CLIENTID")
-						paymentschedmainRecords.Add(item)
-					Next
-				End If
+			'Dim t = Await Task.WhenAll(unitdataTask, CLIENTDATATask,
+			'					 BUYERSDATATask, PAYMENTSCHEMDATATask)
 
+			'Dim unitdata = Await unitdataTask
+			'Dim CLIENTDATA = Await CLIENTDATATask
+			'Dim BUYERSDATA = Await BUYERSDATATask
+			'Dim PAYMENTSCHEMDATA = Await PAYMENTSCHEMDATATask
 
-			End Using
+			If unitdata.Rows.Count > 0 Then
+				For Each i In unitdata.Rows
+					Dim item As New UnitModel()
+					item.UNITID = i("UNITID")
+					item.PROJECTID = i("PRJID")
+					item.COMPANYID = i("COMPANYID")
+					item.UNITNO = i("UNITNO")
+					item.UNITNAME = i("UNITNAME")
+					item.PROJECTNO = i("PROJECTNO")
+					Units.Add(item)
+				Next
+			End If
+
+			If CLIENTDATA.Rows.Count > 0 Then
+				For Each i In CLIENTDATA.Rows
+					Dim item As New BusinessModel()
+					item.ID = i("ID")
+					item.Name = i("business_fullname")
+					item.Sheet = i("Sheet")
+					item.Type = i("Type")
+					Businesses.Add(item)
+				Next
+			End If
+
+			If BUYERSDATA.Rows.Count > 0 Then
+				For Each i In BUYERSDATA.Rows
+					Dim item As New BuyersModel()
+					item.ID = i("ID")
+					item.CLIENTID = i("business_id")
+					item.UNITID = i("PropUnitId")
+					item.BUYERFULLNAME = i("BUYERFULLNAME")
+					Buyers.Add(item)
+				Next
+			End If
+
+			If PAYMENTSCHEMDATA.Rows.Count > 0 Then
+				For Each i In PAYMENTSCHEMDATA.Rows
+					Dim item As New PaymentScheduleMainModel()
+					item.ID = i("ID")
+					item.GUID = i("GUID")
+					item.UNITID = i("UNITID")
+					item.PRJID = i("PRJID")
+					item.CLIENTID = i("CLIENTID")
+					item.BUYERGUID = i("BUYERGUID")
+					item.CLIENTID = i("CLIENTID")
+					paymentschedmainRecords.Add(item)
+				Next
+			End If
+			Return True
 		Catch ex As Exception
 			MessageBoxError2(ex)
+			Return False
 		End Try
-	End Sub
+	End Function
 	Private Sub Client_Master_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 		Try
 			KeyPreview = True
@@ -1268,7 +1200,6 @@ Partial Public Class Client_Master
 
 	Private Sub LoginFrms_Success(UserInfo As Basic.UserClass, _DB As Basic.MYSQL) Handles LoginFrms.Success
 		Try
-			loadData()
 			My.Settings.DefaultCompany = UserInfo.CompanyID
 			My.Settings.Save()
 			LoginFrms.Hide()
