@@ -138,9 +138,9 @@ Partial Public Class Client_Master
 				'insert all business that is not in payee table..
 				db.QueryExecNonQuery("INSERT INTO accounting.payee ( BID,PAYEE_NAME)  SELECT business_number,business_fullname FROM  general.business_list  WHERE business_number NOT IN (SELECT BID FROM  accounting.payee)")
 
-				Dim agent = GetAgentInfo(db, If(String.IsNullOrEmpty(view.GetRowCellValue(I, "Agent *")), "", view.GetRowCellValue(I, "Agent *").ToString.Trim))
-				Dim manager = GetAgentInfo(db, If(String.IsNullOrEmpty(view.GetRowCellValue(I, "Manager")), "", view.GetRowCellValue(I, "Manager").ToString.Trim))
-				Dim broker = GetAgentInfo(db, If(String.IsNullOrEmpty(view.GetRowCellValue(I, "Broker")), "", view.GetRowCellValue(I, "Broker").ToString.Trim))
+				Dim agent = GetAgentInfo(db, view.GetRowCellValue(I, "Agent *").ToString.Trim)
+				Dim manager = GetAgentInfo(db, view.GetRowCellValue(I, "Manager").ToString().Trim)
+				Dim broker = GetAgentInfo(db, view.GetRowCellValue(I, "Broker").ToString().Trim)
 
 				'SAVE AGENT 
 				DIC = New Dictionary(Of String, String)
@@ -159,9 +159,9 @@ Partial Public Class Client_Master
 				DIC.Add("GUID", TransGuid)
 				DIC.Add("unit_id", Unit.UNITID)
 				DIC.Add("project_id", Unit.PROJECTID)
-				If IsNumeric(view.GetRowCellValue(I, "Net Selling Price")) Then
-					DIC.Add("total_contract_price", CDbl(view.GetRowCellValue(I, "Net Selling Price")))
-				End If
+				Dim nsp As Double = 0
+				Double.TryParse(view.GetRowCellValue(I, "Net Selling Price"), nsp)
+				DIC.Add("total_contract_price", nsp)
 				db.Insert("propmanagement.buyersinfoproject", DIC)
 				'SAVE SCHEDULE
 				SAVE_SCHEDULE(db, I, CLIENT, Unit)
@@ -169,6 +169,8 @@ Partial Public Class Client_Master
 				db.QueryExecNonQuery(" UPDATE propmanagement.tbl_property_unit SET unit_status='SOLD OUT',CurrentBuyerID='" & CLIENT.ID & "' WHERE UNITID='" & Unit.UNITID & "'")
 			Next
 		Catch ex As Exception
+			db.isError = True
+			MessageBoxError2(ex)
 		End Try
 	End Sub
 	'Function GetCompanyIDbyPrjID(ByVal PrjID As String) As Integer
@@ -258,8 +260,17 @@ Partial Public Class Client_Master
 	End Function
 	Sub SAVE_SCHEDULE(db As UCommand, i As Integer, Client As BusinessModel, Unit As UnitModel)
 		Try
-			Dim Discount1 As Decimal = 0, Discount2 As Decimal = 0
 			Dim VIEW = GridView1
+
+			Dim Discount1 As Double = 0, Discount2 As Double = 0
+			Dim tc As Double = 0, tcp As Double = 0
+			Dim MoveIn As Double = 0
+			Dim LTO As Double = 0
+			Dim addvat As Double = 0
+			Dim lp As Double = 0
+			Dim vat As Double = 0
+			Dim gross = 0
+
 			Dim DIC As New Dictionary(Of String, String)
 			DIC.Add("PRJID", Unit.PROJECTID)
 			DIC.Add("UNITID", Unit.UNITID)
@@ -269,77 +280,44 @@ Partial Public Class Client_Master
 			DIC.Add("trans_date", Tdate.ToMysqlFormat)
 			DIC.Add("no_months", 0) ' VIEW.GetRowCellValue(i, "Deferred Months"))
 
-			'list price
-			If IsNumeric(VIEW.GetRowCellValue(i, "List Price *")) Then
-				DIC.Add("original_sell_price", CDbl(VIEW.GetRowCellValue(i, "List Price *")))
-			End If
-			'Vat 1
-			If IsNumeric(VIEW.GetRowCellValue(i, "Vat")) Then
-				DIC.Add("IsVat", If(CDbl(VIEW.GetRowCellValue(i, "Vat")) > 0, "V", "NV"))
+			Double.TryParse(VIEW.GetRowCellValue(i, "List Price *"), lp)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Vat"), vat)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Gross"), gross)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Discount 1"), Discount1)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Discount 2"), Discount2)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Transfer Charge"), tc)
+			Double.TryParse(VIEW.GetRowCellValue(i, "TCP"), tcp)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Move-In"), MoveIn)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Add Vat"), addvat)
+			Double.TryParse(VIEW.GetRowCellValue(i, "Loan Takeout"), LTO)
+
+			DIC.Add("original_sell_price", lp) 'list price 
+			If vat > 0 Then
+				DIC.Add("IsVat", If(vat > 0, "V", "NV"))
 				DIC.Add("vat_percentage", 12)
-				DIC.Add("vat_amount", CDbl(VIEW.GetRowCellValue(i, "Vat")))
+				DIC.Add("vat_amount", vat)  'Vat 1
 			End If
-
-			'Gross
-			If IsNumeric(VIEW.GetRowCellValue(i, "Gross")) Then
-				DIC.Add("total_selling_price", CDbl(VIEW.GetRowCellValue(i, "Gross")))
-			End If
-
-			'Discounts
-			If IsNumeric(VIEW.GetRowCellValue(i, "Discount 1")) Then
-				DIC.Add("discount1_amount", CDbl(VIEW.GetRowCellValue(i, "Discount 1")))
-				Discount1 = CDbl(VIEW.GetRowCellValue(i, "Discount 1"))
-			End If
-
-			If IsNumeric(VIEW.GetRowCellValue(i, "Discount 2")) Then
-				DIC.Add("discount2_amount", CDbl(VIEW.GetRowCellValue(i, "Discount 2")))
-				Discount2 = CDbl(VIEW.GetRowCellValue(i, "Discount 2"))
-			End If
-
-			'Net Price/Sub Total
-			If IsNumeric(VIEW.GetRowCellValue(i, "List Price *")) Then
-				DIC.Add("SubTotal", CDbl(VIEW.GetRowCellValue(i, "List Price *")) - Discount1 - Discount2)
-			End If
-
-			'add vat >0
-			If IsNumeric(VIEW.GetRowCellValue(i, "Add Vat")) Then
-				If CDbl(VIEW.GetRowCellValue(i, "Add Vat")) > 0 Then
-					DIC.Add("net_vat_amount", CDbl(VIEW.GetRowCellValue(i, "Add Vat")))
-				End If
-			End If
-			'TCP
-			If IsNumeric(VIEW.GetRowCellValue(i, "TCP")) Then
-				DIC.Add("total_net_selling_price", CDbl(VIEW.GetRowCellValue(i, "TCP")))
-			End If
-
+			DIC.Add("total_selling_price", gross) 'Gross
+			DIC.Add("discount1_amount", Discount1) 'Discounts
+			DIC.Add("discount2_amount", Discount2) 'Discounts
+			DIC.Add("SubTotal", lp - Discount1 - Discount2) 'Net Price/Sub Total
+			DIC.Add("net_vat_amount", addvat) 'add vat >0
+			DIC.Add("total_net_selling_price", tcp) 'TCP
+			DIC.Add("transfer_charges_percentage", CDbl(FormatNumber(tc / tcp * 100, 2)))
+			DIC.Add("transfer_amount", tc)
+			DIC.Add("movein_amount", MoveIn)
+			Try
+				DIC.Add("move_in_fees_percentage", CDbl(FormatNumber(MoveIn / tcp * 100, 2)))
+			Catch ex As Exception
+			End Try
+			DIC.Add("take_out_loan_amount", LTO)
+			DIC.Add("trans_type", "EMI")
 			'DIC.Add("equity_percentage",)
 			'DIC.Add("equity_amount",)  
-			Try
-				If IsNumeric(VIEW.GetRowCellValue(i, "Transfer Charge")) And IsNumeric(VIEW.GetRowCellValue(i, "TCP")) Then
-					DIC.Add("transfer_charges_percentage", CDbl(FormatNumber(CDbl(VIEW.GetRowCellValue(i, "Transfer Charge")) / CDbl(VIEW.GetRowCellValue(i, "TCP")) * 100, 2)))
-					DIC.Add("transfer_amount", CDbl(VIEW.GetRowCellValue(i, "Transfer Charge")))
-				End If
-			Catch ex As Exception
-			End Try
-			Try
-				If IsNumeric(VIEW.GetRowCellValue(i, "Move-In")) And IsNumeric(VIEW.GetRowCellValue(i, "TCP")) Then
-					DIC.Add("move_in_fees_percentage", CDbl(FormatNumber(CDbl(VIEW.GetRowCellValue(i, "Move-In")) / CDbl(VIEW.GetRowCellValue(i, "TCP")) * 100, 2)))
-					DIC.Add("movein_amount", CDbl(VIEW.GetRowCellValue(i, "Move-In")))
-				End If
-			Catch ex As Exception
-			End Try
-
-			'DIC.Add("equity_amount", 0) ' CDbl(VIEW.GetRowCellValue(i, "Equity Amount")))
-			'DIC.Add("equity_percentage", 0) ' CDbl(VIEW.GetRowCellValue(i, "Equity  Pecentage")))
-			Try
-				If IsNumeric(VIEW.GetRowCellValue(i, "Loan Takeout")) Then
-					DIC.Add("take_out_loan_amount", CDbl(VIEW.GetRowCellValue(i, "Loan Takeout")))
-				End If
-			Catch ex As Exception
-			End Try
-			DIC.Add("trans_type", "EMI")
 			db.Insert("propmanagement.paymentschedmain", DIC)
 		Catch ex As Exception
+			db.isError = True
+			MessageBoxError2(ex)
 		End Try
 	End Sub
 	Function GetSchedGUID(client As BusinessModel, unit As UnitModel) As String
@@ -442,15 +420,9 @@ Partial Public Class Client_Master
 			Return False
 		End Try
 	End Function
-	Async Function Validation(db As UCommand) As Task(Of Boolean)
+	Function Validation() As Boolean
 		Try
 			Dim View = GridView1
-			Await Remove(db)
-			Dim loaded = loadData(db)
-			If Not loaded Then
-				MessageBoxStr("Cannot continue, Data is not loaded")
-				Return False
-			End If
 			If View.RowCount = 0 Then
 				MessageBoxStr("Nothing to save")
 				Return False
@@ -502,13 +474,13 @@ Partial Public Class Client_Master
 
 				DIC = New Dictionary(Of String, String)
 				DIC.Add("GUID", TransGuid)
-				DIC.Add("BUYERID", BuyerInfo.ID)
-				DIC.Add("BID", CLIENT.ID)
-				DIC.Add("BuyerName", CLIENT.Name.RSQ)
-				DIC.Add("UNITID", Unit.UNITID)
-				DIC.Add("UNITNO", Unit.UNITNO.RSQ)
-				DIC.Add("PRJID", Unit.PROJECTID)
-				DIC.Add("TITLEID", Unit.COMPANYID)
+				DIC.Add("BUYERID", BuyerInfo?.ID)
+				DIC.Add("BID", CLIENT?.ID)
+				DIC.Add("BuyerName", CLIENT?.Name.RSQ)
+				DIC.Add("UNITID", Unit?.UNITID)
+				DIC.Add("UNITNO", Unit?.UNITNO.RSQ)
+				DIC.Add("PRJID", Unit?.PROJECTID)
+				DIC.Add("TITLEID", Unit?.COMPANYID)
 				DIC.Add("Date_description", GridView1.GetRowCellValue(I, "Particulars *").ToString.Trim.RSQ)
 				DIC.Add("PMTTYPE", GridView1.GetRowCellValue(I, "Payment Scheme").ToString.Trim.RSQ)
 				DIC.Add("VisibleInReceivedPmt", 1)
@@ -800,13 +772,25 @@ Partial Public Class Client_Master
 			View.ClearColumnsFilter()
 			If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
 				Using db As New UCommand
-					If Await Validation(db) = False Then Exit Sub
+					Remove(db)
+					Dim loaded = loadData(db)
+					If Not loaded Then
+						MessageBoxStr("Cannot continue, Data is not loaded")
+						Exit Sub
+					End If
+					If Validation() = False Then Exit Sub
 					SAVE_CLIENT(db)
 					db.SaveChanges()
 				End Using
 			ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
 				Using db As New UCommand
-					If Await Validation(db) = False Then Exit Sub
+					Remove(db)
+					Dim loaded = loadData(db)
+					If Not loaded Then
+						MessageBoxStr("Cannot continue, Data is not loaded")
+						Exit Sub
+					End If
+					If Validation() = False Then Exit Sub
 					SAVE_CHARGES(db)
 					db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAIF%';")
 					db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAUD%';")
@@ -1026,22 +1010,22 @@ Partial Public Class Client_Master
 	'Function GetAcccountName(S As String)
 	'	Return DB.QueryandReturnObject("SELECT  account_description FROM accounting.account_setup WHERE account_code='" & S.Trim.RSQ & "'")
 	'End Function
-	Async Function Remove(db As UCommand) As Task(Of Boolean)
+	Function Remove(db As UCommand) As Boolean
 		Try
 			If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
 				db.Delete("general.business_list", "Sheet='" & ComboBox1.Text.RSQ & "'")
-				db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfomain WHERE Sheets='" & ComboBox1.Text.Trim.RSQ & "' and business_id NOT IN (SELECT business_number FROM general.business_list)")
-				db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoagents WHERE GUID NOT IN (SELECT GUID FROM propmanagement.buyersinfomain)")
-				db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoproject WHERE GUID NOT IN (SELECT GUID FROM propmanagement.buyersinfomain)")
-				db.QueryExecNonQuery("DELETE FROM propmanagement.paymentschedmain WHERE BUYERGUID NOT IN (SELECT GUID FROM propmanagement.buyersinfomain)")
+				db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfomain WHERE Sheets='" & ComboBox1.Text.Trim.RSQ & "' and NOT EXISTS(SELECT business_number FROM general.business_list WHERE BUSINESS_NUMBER=business_id)")
+				db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoagents WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain WHERE buyersinfomain.GUID=buyersinfoagents.GUID)")
+				db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoproject WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=buyersinfoproject.GUID)")
+				db.QueryExecNonQuery("DELETE FROM propmanagement.paymentschedmain WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=paymentschedmain.BUYERGUID)")
 			ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
+				'db.Delete("propmanagement.cashierpayment_bk", "GUID NOT IN (SELECT guid FROM propmanagement.cashierpayment)")
 				db.Delete("propmanagement.allcharges", "Sheet='" & ComboBox1.Text.Trim.RSQ & "'")
-				db.Delete("propmanagement.cashierpayment", "AllChargeGUID not in (select GUID from propmanagement.allcharges)")
-				db.Delete("propmanagement.cashierpayment_bk", "GUID NOT IN (SELECT guid FROM propmanagement.cashierpayment)")
-				db.Delete("propmanagement.appliedpayment", "CashierGUID not in (select GUID from propmanagement.cashierpayment)")
-				db.Delete("propmanagement.tbl_payment_details", "GUID not in (select GUID from propmanagement.allcharges)")
-				db.Delete("propmanagement.tbl_othercharges_schedule", "GUID not in (select GUID from propmanagement.allcharges)")
-				db.Delete("propmanagement.reservation", "GUID not in (select GUID from propmanagement.allcharges)")
+				db.Delete("propmanagement.cashierpayment", "NOT EXISTS(SELECT GUID FROM propmanagement.allcharges   WHERE allcharges.GUID=cashierpayment.AllChargeGUID)")
+				db.Delete("propmanagement.appliedpayment", "NOT EXISTS  (SELECT GUID FROM propmanagement.cashierpayment WHERE cashierpayment.GUID=CashierGUID)")
+				db.Delete("propmanagement.tbl_payment_details", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=tbl_payment_details.GUID)")
+				db.Delete("propmanagement.tbl_othercharges_schedule", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=tbl_othercharges_schedule.GUID)")
+				db.Delete("propmanagement.reservation", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=reservation.GUID)")
 			End If
 			Return True
 		Catch ex As Exception
@@ -1052,7 +1036,7 @@ Partial Public Class Client_Master
 		Try
 			If Not MessageContinueRemove() Then Exit Sub
 			Using db As New UCommand
-				Await Remove(db)
+				Remove(db)
 				db.SaveChanges()
 			End Using
 		Catch ex As Exception
@@ -1067,7 +1051,6 @@ Partial Public Class Client_Master
 
 			'//LOAD UNITS
 			Dim unitdata = Command.Datasource($"SELECT  UNITID,PRJID,TITLE_ID 'COMPANYID',UNITNO,UNITNAME  ,PROJECT_NO 'PROJECTNO'  FROM propmanagement.tbl_property_unit INNER JOIN general.setup_project  ON PROJECT_ID=PRJID")
-			'Dim projectData = Command.Datasource($" SELECT  project_id,title_id,Main_office_id,project,project_no,project_name ,STATUS FROM general.setup_project")
 			Dim CLIENTDATA = Command.Datasource($"SELECT IFNULL(business_number,0) 'ID',business_fullname ,Type ,Sheet FROM general.`business_list` WHERE `Type`!='SUPPLIER'")
 			Dim BUYERSDATA = Command.Datasource($"SELECT ID,business_id,BUYERFULLNAME,PropUnitId FROM propmanagement.buyersinfomain")
 			Dim PAYMENTSCHEMDATA = Command.Datasource($"select ID,GUID,UNITID,PRJID,CLIENTID,BUYERGUID from propmanagement.paymentschedmain")

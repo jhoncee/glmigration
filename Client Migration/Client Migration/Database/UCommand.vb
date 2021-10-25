@@ -22,8 +22,7 @@ Public Class UCommand
     End Property
     Sub connect()
         Try
-            Connection = New MySqlConnection
-            Connection = DB.Connection.Clone
+            Connection = New MySqlConnection("server=localhost;database=accounting;uid=admin;pwd=admin67584321@#$;port=3308;")
             Connection.Open()
             command = New MySqlCommand
             command.Connection = Connection
@@ -49,6 +48,8 @@ Public Class UCommand
         Catch ex As Exception
             _LPK = 0
             isError = True
+            MessageBoxError2(ex)
+
         End Try
     End Sub
     Public Sub Insert(ByVal tableName As String, ByVal data As Dictionary(Of String, String))
@@ -68,6 +69,8 @@ Public Class UCommand
             QueryExecNonQuery(String.Format("insert into  {0}({1}) values({2});", tableName, columns, values))
         Catch ex As Exception
             isError = True
+            MessageBoxError2(ex)
+
         End Try
     End Sub
     Public Sub Update(ByVal tableName As String, ByVal data As Dictionary(Of String, String), ByVal whereParams As String)
@@ -86,6 +89,8 @@ Public Class UCommand
             QueryExecNonQuery(String.Format("update {0} set {1} where {2} ;", tableName, vals, whereParams))
         Catch ex As Exception
             isError = True
+            MessageBoxError2(ex)
+
         End Try
     End Sub
     Public Sub Delete(ByVal tableName As String, Optional ByVal whereParams As String = "")
@@ -98,6 +103,8 @@ Public Class UCommand
             End If
         Catch ex As Exception
             isError = True
+            MessageBoxError2(ex)
+
         End Try
     End Sub
     Public Function Datasource(ByVal QueryString As String, Optional _fromRow As Integer = 0, Optional ReturnRow As Integer = 0) As DataTable
@@ -113,6 +120,7 @@ Public Class UCommand
             Return data
         Catch ex As Exception
             isError = True
+            MessageBoxError2(ex)
             Return Nothing
         End Try
     End Function
@@ -130,6 +138,7 @@ Public Class UCommand
             Return data
         Catch ex As Exception
             isError = True
+            MessageBoxError2(ex)
             Return Nothing
         End Try
     End Function
@@ -141,6 +150,8 @@ Public Class UCommand
             Return command.ExecuteScalar()
         Catch ex As Exception
             isError = True
+            MessageBoxError2(ex)
+
             Return Nothing
         End Try
     End Function
@@ -157,6 +168,7 @@ Public Class UCommand
             End If
             Return Not isError
         Catch ex As Exception
+            MessageBoxError2(ex)
             Return False
         End Try
     End Function
