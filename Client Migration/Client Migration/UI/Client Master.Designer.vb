@@ -64,7 +64,7 @@ Partial Public Class Client_Master
         Me.ribbonControl.Pages.AddRange(New DevExpress.XtraBars.Ribbon.RibbonPage() {Me.ribbonPage})
         Me.ribbonControl.RibbonStyle = DevExpress.XtraBars.Ribbon.RibbonControlStyle.Office2013
         Me.ribbonControl.ShowApplicationButton = DevExpress.Utils.DefaultBoolean.[False]
-        Me.ribbonControl.Size = New System.Drawing.Size(1312, 162)
+        Me.ribbonControl.Size = New System.Drawing.Size(1253, 143)
         Me.ribbonControl.ToolbarLocation = DevExpress.XtraBars.Ribbon.RibbonQuickAccessToolbarLocation.Hidden
         '
         'employeesBarButtonItem
@@ -121,15 +121,14 @@ Partial Public Class Client_Master
         Me.GroupControl1.Controls.Add(Me.SimpleButton1)
         Me.GroupControl1.Controls.Add(Me.LabelControl1)
         Me.GroupControl1.Dock = System.Windows.Forms.DockStyle.Top
-        Me.GroupControl1.Location = New System.Drawing.Point(0, 162)
+        Me.GroupControl1.Location = New System.Drawing.Point(0, 143)
         Me.GroupControl1.Name = "GroupControl1"
         Me.GroupControl1.ShowCaption = False
-        Me.GroupControl1.Size = New System.Drawing.Size(1312, 54)
+        Me.GroupControl1.Size = New System.Drawing.Size(1253, 54)
         Me.GroupControl1.TabIndex = 4
         '
         'SimpleButton5
         '
-        Me.SimpleButton5.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.SimpleButton5.Location = New System.Drawing.Point(410, 8)
         Me.SimpleButton5.Name = "SimpleButton5"
         Me.SimpleButton5.Size = New System.Drawing.Size(84, 23)
@@ -188,11 +187,11 @@ Partial Public Class Client_Master
         'GridControl1
         '
         Me.GridControl1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.GridControl1.Location = New System.Drawing.Point(0, 216)
+        Me.GridControl1.Location = New System.Drawing.Point(0, 197)
         Me.GridControl1.MainView = Me.GridView1
         Me.GridControl1.MenuManager = Me.ribbonControl
         Me.GridControl1.Name = "GridControl1"
-        Me.GridControl1.Size = New System.Drawing.Size(1312, 298)
+        Me.GridControl1.Size = New System.Drawing.Size(1253, 317)
         Me.GridControl1.TabIndex = 5
         Me.GridControl1.ViewCollection.AddRange(New DevExpress.XtraGrid.Views.Base.BaseView() {Me.GridView1})
         '
@@ -200,13 +199,15 @@ Partial Public Class Client_Master
         '
         Me.GridView1.GridControl = Me.GridControl1
         Me.GridView1.Name = "GridView1"
+        Me.GridView1.OptionsBehavior.Editable = False
+        Me.GridView1.OptionsBehavior.ReadOnly = True
         Me.GridView1.OptionsView.ColumnAutoWidth = False
         '
         'Client_Master
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(1312, 514)
+        Me.ClientSize = New System.Drawing.Size(1253, 514)
         Me.Controls.Add(Me.GridControl1)
         Me.Controls.Add(Me.GroupControl1)
         Me.Controls.Add(Me.ribbonControl)

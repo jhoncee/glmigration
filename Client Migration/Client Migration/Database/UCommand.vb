@@ -22,7 +22,10 @@ Public Class UCommand
     End Property
     Sub connect()
         Try
-            Connection = New MySqlConnection("server=localhost;database=accounting;uid=admin;pwd=admin67584321@#$;port=3308;")
+            'Connection = New MySqlConnection("server=localhost;database=accounting;uid=admin;pwd=admin67584321@#$;port=3308;")
+            Connection = New MySqlConnection
+            Connection = DB.Connection.Clone
+            If Connection.State = ConnectionState.Open Then Connection.Close()
             Connection.Open()
             command = New MySqlCommand
             command.Connection = Connection
