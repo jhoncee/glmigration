@@ -305,7 +305,6 @@ Partial Public Class Client_Master
 			If IsNumeric(VIEW.GetRowCellValue(i, "Loan Takeout").ToString) AndAlso Double.TryParse(VIEW.GetRowCellValue(i, "Loan Takeout"), LTO) Then
 				DIC.Add("take_out_loan_amount", LTO)
 			End If
-
 			DIC.Add("trans_type", "EMI")
 			DIC.Add("migrationSheet", ComboBox1.Text.RSQ)
 			'DIC.Add("equity_percentage",)
@@ -440,7 +439,7 @@ Partial Public Class Client_Master
 					Return False
 				End If
 				'need to have a client Name
-				If ComboBox1.Text.Trim.ToString.ToLower.Contains("buyer") And View.GetRowCellValue(i, "Buyer Name *").ToString.Trim = "" Then
+				If ComboBox1.Text.Trim.ToString.ToLower.Contains("buyer") And String.IsNullOrWhiteSpace(View.GetRowCellValue(i, "Buyer Name *").ToString) Then
 					MessageBoxStr("Invalid Client Name Line:" & i + 1)
 					Return False
 				End If
@@ -757,72 +756,84 @@ Partial Public Class Client_Master
 		End Try
 	End Sub
 
-	Private Async Sub BarButtonItem1_ItemClick(sender As Object, e As DevExpress.XtraBars.ItemClickEventArgs) Handles BarButtonItem1.ItemClick
+	Function validateTemplate() As Boolean
 		Try
 			TransGuid = Guid.NewGuid().ToString()
 			Dim View = GridView1
 			View.ClearColumnsFilter()
+
 			Using Command As New UCommand
 				If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
-					Dim check = DB.Datasource($"select * from general.business_list where Sheet='{ComboBox1.Text.Trim.RSQ}'")
+					Dim check = Command.Datasource($"select * from general.business_list where Sheet='{ComboBox1.Text.Trim.RSQ}'")
 					If check.Rows.Count > 0 Then
-						If Not MessageWhat($"This template [{ComboBox1.Text.Trim}] Is already migrated.Do you want to remove the previous migration?") Then Exit Sub
+						If Not MessageWhat($"This template [{ComboBox1.Text.Trim}] Is already migrated.Do you want to remove the previous migration?") Then Return False
 					End If
 				Else
-					Dim check = DB.Datasource($"select * from propmanagement.allcharges where Sheet='{ComboBox1.Text.Trim.RSQ}'")
+					Dim check = Command.Datasource($"select * from propmanagement.allcharges where Sheet='{ComboBox1.Text.Trim.RSQ}'")
 					If check.Rows.Count > 0 Then
-						If Not MessageWhat($"This template  [{ComboBox1.Text.Trim}] Is already migrated.Do you want to remove the previous migration?") Then Exit Sub
+						If Not MessageWhat($"This template  [{ComboBox1.Text.Trim}] Is already migrated.Do you want to remove the previous migration?") Then Return False
 					End If
 				End If
 			End Using
-
+			Return True
+		Catch ex As Exception
+			Return False
+		End Try
+	End Function
+	Sub saveBuyer()
+		Using db As New UCommand
 			Try
 				SplashScreenManager.ShowDefaultWaitForm()
+				Remove(db)
+				Dim loaded = loadData(db)
+				If Not loaded Then
+					MessageBoxStr("Cannot continue, Data is not loaded")
+					Exit Sub
+				End If
+				If Validation() = False Then Exit Sub
+				SAVE_CLIENT(db)
+				db.SaveChanges()
 			Catch ex As Exception
+				SplashScreenManager.CloseDefaultWaitForm()
 			End Try
-
-			If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
-				Using db As New UCommand
-					Remove(db)
-					Dim loaded = loadData(db)
-					If Not loaded Then
-						MessageBoxStr("Cannot continue, Data is not loaded")
-						Exit Sub
-					End If
-					If Validation() = False Then Exit Sub
-					SAVE_CLIENT(db)
-					db.SaveChanges()
-				End Using
-			ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
-				Using db As New UCommand
-					Remove(db)
-					Dim loaded = loadData(db)
-					If Not loaded Then
-						MessageBoxStr("Cannot continue, Data is not loaded")
-						Exit Sub
-					End If
-					If Validation() = False Then Exit Sub
-					SAVE_CHARGES(db)
-					db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAIF%';")
-					db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAUD%';")
-					db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%W/%';")
-					db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%PULL%';")
-					db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%UNCLEARED%';")
-					db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%Unclear%';")
-					db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Cleared' WHERE BankStatus  LIKE 'Clear';")
-					db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Active' WHERE BankStatus  LIKE 'Cleared';")
-					db.QueryExecNonQuery("UPDATE propmanagement.paymentschedmain SET SubTotal=original_sell_price-discount1_amount-discount2_amount;")
-					db.SaveChanges()
-				End Using
-			Else
-				MessageBox.Show("Template not Fetch")
-			End If
-		Catch ex As Exception
-		End Try
-		Try
-			SplashScreenManager.CloseDefaultWaitForm()
-		Catch ex As Exception
-		End Try
+		End Using
+	End Sub
+	Sub SavePayment()
+		Using db As New UCommand
+			Try
+				SplashScreenManager.ShowDefaultWaitForm()
+				Remove(db)
+				Dim loaded = loadData(db)
+				If Not loaded Then
+					MessageBoxStr("Cannot continue, Data is not loaded")
+					Exit Sub
+				End If
+				If Validation() = False Then Exit Sub
+				SAVE_CHARGES(db)
+				db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAIF%';")
+				db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Cancelled' WHERE BankStatus  LIKE '%DAUD%';")
+				db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%W/%';")
+				db.QueryExecNonQuery("update propmanagement.cashierpayment set PmtStatus='Cancelled' WHERE BankStatus  LIKE '%PULL%';")
+				db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%UNCLEARED%';")
+				db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Un-Cleared' WHERE BankStatus  LIKE '%Unclear%';")
+				db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET BankStatus='Cleared' WHERE BankStatus  LIKE 'Clear';")
+				db.QueryExecNonQuery("UPDATE propmanagement.cashierpayment SET PmtStatus='Active' WHERE BankStatus  LIKE 'Cleared';")
+				db.QueryExecNonQuery("UPDATE propmanagement.paymentschedmain SET SubTotal=original_sell_price-discount1_amount-discount2_amount;")
+				db.SaveChanges()
+			Catch ex As Exception
+				SplashScreenManager.CloseDefaultWaitForm()
+			End Try
+		End Using
+	End Sub
+	Private Sub BarButtonItem1_ItemClick(sender As Object, e As DevExpress.XtraBars.ItemClickEventArgs) Handles BarButtonItem1.ItemClick
+		If Not validateTemplate() Then Exit Sub
+		If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
+			saveBuyer()
+		ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
+			SavePayment()
+		Else
+			MessageBox.Show("Template not Fetch")
+		End If
 	End Sub
 	Function SecondValidationCheck() As Boolean
 		Try
@@ -840,13 +851,16 @@ Partial Public Class Client_Master
 
 			Dim ExcelCols As New List(Of String)
 			ExcelCols.Clear()
+
 			For i = 0 To GridView1.Columns.Count - 1
 				ExcelCols.Add(GridView1.Columns(i).FieldName)
 			Next
+
 			If ComboBox1.Text.Trim = "'Payment Schedule $'" Then
 				MessageBox.Show("Please rename Sheet Name to its corresponding Project and Floors Name." & vbNewLine & "Needed a unique template name" & vbNewLine & "Example: Payment Schedule P05-05F")
 				Return False
 			End If
+
 			For Each i In FieldName
 				Dim f = ExcelCols.Where(Function(x) x = i)
 				If f.Count = 0 Then
@@ -863,7 +877,7 @@ Partial Public Class Client_Master
 			Dim excelChargeName As New List(Of String)
 			Dim EXcelMOP As New List(Of String)
 			For i = 1 To GridView1.RowCount - 1
-				Dim chrgeName = New String(GridView1.GetRowCellValue(i, "Charge Name *").ToString)
+				Dim chrgeName As String = GridView1.GetRowCellValue(i, "Charge Name *").ToString
 				'If i = 460 Then
 				'	Dim x = 0
 				'	Dim row = GridView1.GetRow(i - 1)
@@ -875,7 +889,6 @@ Partial Public Class Client_Master
 				End If
 				excelChargeName.Add(chrgeName)
 				EXcelMOP.Add(New String(GridView1.GetRowCellValue(i, "MOP *").ToString))
-
 			Next
 
 			'cHECK cHARGENAMES
@@ -899,6 +912,7 @@ Partial Public Class Client_Master
 					End If
 				End If
 			Next
+
 			Dim validationcounter As Integer = 0
 			'check MOps
 			For Each i In EXcelMOP
@@ -921,17 +935,17 @@ Partial Public Class Client_Master
 
 			For I As Integer = 0 To GridView1.RowCount - 1
 				Dim View = GridView1
-				If View.GetRowCellValue(I, "Charge Name *").ToString.Trim = "" Then
+				If String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "Charge Name *").ToString) Then
 					GridView1.FocusedRowHandle = I
 					MessageBoxStr("Invalid Charge Name. line: " & I + 1)
 					Return False
 				End If
-				If View.GetRowCellValue(I, "Particulars *").ToString.Trim = "" Then
+				If String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "Particulars *").ToString) Then
 					GridView1.FocusedRowHandle = I
 					MessageBoxStr("Invalid Particulars. line: " & I + 1)
 					Return False
 				End If
-				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
+				If Not String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "MOP *").ToString) Then
 					Dim Amt As Double = 0
 					If IsNumeric(GridView1.GetRowCellValue(I, "Amount2")) Then
 						Amt = CDbl(View.GetRowCellValue(I, "Amount2"))
@@ -947,33 +961,35 @@ Partial Public Class Client_Master
 						Return False
 					End If
 				End If
-				If View.GetRowCellValue(I, "Charge Name *").ToString.Trim <> "" And View.GetRowCellValue(I, "Particulars *").ToString.Trim = "" Then
+				If Not String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "Charge Name *").ToString) And String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "Particulars *").ToString) Then
 					GridView1.FocusedRowHandle = I
 					MessageBoxStr("Invalid Particulars @line:  " & I + 1)
 					Return False
 				End If
 
-				If String.IsNullOrWhiteSpace(GridView1.GetRowCellValue(I, "Payments Status")) Then
+				If String.IsNullOrWhiteSpace(GridView1.GetRowCellValue(I, "Payments Status").ToString) Then
 					GridView1.FocusedRowHandle = I
 					MessageBoxStr("Invalid Payment Status @Line:  " & I + 1)
 					Return False
 				End If
-				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
-					If View.GetRowCellValue(I, "Check Status").ToString.Trim = "" Then
+
+				If Not String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "MOP *").ToString) Then
+					If String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "Check Status").ToString) Then
 						GridView1.FocusedRowHandle = I
 						MessageBoxStr("Invalid Check Status @Line:  " & I + 1)
 						Return False
 					End If
 				End If
 
-				Select Case View.GetRowCellValue(I, "MOP *").ToString.ToLower.Trim
+				Dim mops = View.GetRowCellValue(I, "MOP *").ToString.ToLower.Trim
+				Select Case mops
 					Case "check", "cash", "online", "credit card", ""
 					Case Else
 						MessageBoxStr($"MOP [{View.GetRowCellValue(I, "MOP *").ToString.Trim}]  @ row{I} is  not defined")
 						Return False
 				End Select
 
-				If View.GetRowCellValue(I, "MOP *").ToString.Trim <> "" Then
+				If Not String.IsNullOrWhiteSpace(View.GetRowCellValue(I, "MOP *").ToString) Then
 					Dim Amt As Double = 0
 					If IsNumeric(GridView1.GetRowCellValue(I, "Amount2")) Then
 						Amt = CDbl(View.GetRowCellValue(I, "Amount2"))
@@ -1003,6 +1019,7 @@ Partial Public Class Client_Master
 					MessageBoxStr("Client Not Found. line: " & I + 1)
 					Return False
 				End If
+
 				'If I + 1 = 579 Then
 				'	Dim xx = 0
 				'End If
@@ -1033,44 +1050,37 @@ Partial Public Class Client_Master
 	'	Return DB.QueryandReturnObject("SELECT  account_description FROM accounting.account_setup WHERE account_code='" & S.Trim.RSQ & "'")
 	'End Function
 	Function Remove(db As UCommand) As Boolean
-		Try
-			If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
-				'db.Delete("general.business_list", "Sheet='" & ComboBox1.Text.RSQ & "'") 'migrationSheet
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.buyersinfomain WHERE Sheets='" & ComboBox1.Text.Trim.RSQ & "'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.buyersinfoagents  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.buyersinfoproject WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.paymentschedmain  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-			ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.allcharges		WHERE Sheet='{ComboBox1.Text.Trim.RSQ}'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.cashierpayment	WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.appliedpayment	WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.tbl_payment_details  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.tbl_othercharges_schedule  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-				db.QueryExecNonQuery($"DELETE FROM propmanagement.reservation  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
-			End If
+		If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
+			'db.Delete("general.business_list", "Sheet='" & ComboBox1.Text.RSQ & "'") 'migrationSheet
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.buyersinfomain WHERE Sheets='" & ComboBox1.Text.Trim.RSQ & "'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.buyersinfoagents  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.buyersinfoproject WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.paymentschedmain  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+		ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.allcharges		WHERE Sheet='{ComboBox1.Text.Trim.RSQ}'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.cashierpayment	WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.appliedpayment	WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.tbl_payment_details  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.tbl_othercharges_schedule  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+			db.QueryExecNonQuery($"DELETE FROM propmanagement.reservation  WHERE migrationSheet='{ComboBox1.Text.Trim.RSQ}'")
+		End If
 
-			'If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
-			'	db.Delete("general.business_list", "Sheet='" & ComboBox1.Text.RSQ & "'") 'migrationSheet
-			'	db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfomain    WHERE Sheets='" & ComboBox1.Text.Trim.RSQ & "' and NOT EXISTS(SELECT business_number FROM general.business_list WHERE BUSINESS_NUMBER=business_id)")
-			'	db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoagents  WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=buyersinfoagents.GUID)")
-			'	db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoproject WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=buyersinfoproject.GUID)")
-			'	db.QueryExecNonQuery("DELETE FROM propmanagement.paymentschedmain  WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=paymentschedmain.BUYERGUID)")
-			'ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
-			'	'db.Delete("propmanagement.cashierpayment_bk", "GUID NOT IN (SELECT guid FROM propmanagement.cashierpayment)")
-			'	db.Delete("propmanagement.allcharges", "Sheet='" & ComboBox1.Text.Trim.RSQ & "'")
-			'	db.Delete("propmanagement.cashierpayment", "NOT EXISTS(SELECT GUID FROM propmanagement.allcharges   WHERE allcharges.GUID=cashierpayment.AllChargeGUID)")
-			'	db.Delete("propmanagement.appliedpayment", "NOT EXISTS  (SELECT GUID FROM propmanagement.cashierpayment WHERE cashierpayment.GUID=CashierGUID)")
-			'	db.Delete("propmanagement.tbl_payment_details", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=tbl_payment_details.GUID)")
-			'	db.Delete("propmanagement.tbl_othercharges_schedule", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=tbl_othercharges_schedule.GUID)")
-			'	db.Delete("propmanagement.reservation", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=reservation.GUID)")
-			'End If
+		'If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
+		'	db.Delete("general.business_list", "Sheet='" & ComboBox1.Text.RSQ & "'") 'migrationSheet
+		'	db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfomain    WHERE Sheets='" & ComboBox1.Text.Trim.RSQ & "' and NOT EXISTS(SELECT business_number FROM general.business_list WHERE BUSINESS_NUMBER=business_id)")
+		'	db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoagents  WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=buyersinfoagents.GUID)")
+		'	db.QueryExecNonQuery("DELETE FROM propmanagement.buyersinfoproject WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=buyersinfoproject.GUID)")
+		'	db.QueryExecNonQuery("DELETE FROM propmanagement.paymentschedmain  WHERE NOT EXISTS (SELECT GUID FROM propmanagement.buyersinfomain  WHERE buyersinfomain.GUID=paymentschedmain.BUYERGUID)")
+		'ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
+		'	'db.Delete("propmanagement.cashierpayment_bk", "GUID NOT IN (SELECT guid FROM propmanagement.cashierpayment)")
+		'	db.Delete("propmanagement.allcharges", "Sheet='" & ComboBox1.Text.Trim.RSQ & "'")
+		'	db.Delete("propmanagement.cashierpayment", "NOT EXISTS(SELECT GUID FROM propmanagement.allcharges   WHERE allcharges.GUID=cashierpayment.AllChargeGUID)")
+		'	db.Delete("propmanagement.appliedpayment", "NOT EXISTS  (SELECT GUID FROM propmanagement.cashierpayment WHERE cashierpayment.GUID=CashierGUID)")
+		'	db.Delete("propmanagement.tbl_payment_details", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=tbl_payment_details.GUID)")
+		'	db.Delete("propmanagement.tbl_othercharges_schedule", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=tbl_othercharges_schedule.GUID)")
+		'	db.Delete("propmanagement.reservation", "NOT EXISTS  (SELECT GUID FROM propmanagement.allcharges WHERE allcharges.GUID=reservation.GUID)")
+		'End If 
 
-
-
-			Return True
-		Catch ex As Exception
-			Return False
-		End Try
 	End Function
 	Private Async Sub SimpleButton2_Click(sender As Object, e As EventArgs) Handles SimpleButton2.Click
 		Try

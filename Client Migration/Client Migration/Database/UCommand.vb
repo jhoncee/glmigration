@@ -52,7 +52,6 @@ Public Class UCommand
             _LPK = 0
             isError = True
             MessageBoxError2(ex)
-
         End Try
     End Sub
     Public Sub Insert(ByVal tableName As String, ByVal data As Dictionary(Of String, String))
@@ -184,8 +183,10 @@ Public Class UCommand
         If Not disposedValue Then
             If disposing Then
                 ' TODO: dispose managed state (managed objects).
+                Connection.Close()
+                command = New MySqlCommand
+                isError = False
             End If
-
             ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
             ' TODO: set large fields to null.
         End If

@@ -58,13 +58,14 @@ Partial Public Class Client_Master
         Me.ribbonControl.ExpandCollapseItem.Id = 0
         Me.ribbonControl.Items.AddRange(New DevExpress.XtraBars.BarItem() {Me.ribbonControl.ExpandCollapseItem, Me.employeesBarButtonItem, Me.customersBarButtonItem, Me.BarButtonItem1, Me.BarButtonItem2})
         Me.ribbonControl.Location = New System.Drawing.Point(0, 0)
+        Me.ribbonControl.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.ribbonControl.MaxItemId = 48
         Me.ribbonControl.MdiMergeStyle = DevExpress.XtraBars.Ribbon.RibbonMdiMergeStyle.Always
         Me.ribbonControl.Name = "ribbonControl"
         Me.ribbonControl.Pages.AddRange(New DevExpress.XtraBars.Ribbon.RibbonPage() {Me.ribbonPage})
         Me.ribbonControl.RibbonStyle = DevExpress.XtraBars.Ribbon.RibbonControlStyle.Office2013
         Me.ribbonControl.ShowApplicationButton = DevExpress.Utils.DefaultBoolean.[False]
-        Me.ribbonControl.Size = New System.Drawing.Size(1253, 143)
+        Me.ribbonControl.Size = New System.Drawing.Size(1462, 198)
         Me.ribbonControl.ToolbarLocation = DevExpress.XtraBars.Ribbon.RibbonQuickAccessToolbarLocation.Hidden
         '
         'employeesBarButtonItem
@@ -121,82 +122,93 @@ Partial Public Class Client_Master
         Me.GroupControl1.Controls.Add(Me.SimpleButton1)
         Me.GroupControl1.Controls.Add(Me.LabelControl1)
         Me.GroupControl1.Dock = System.Windows.Forms.DockStyle.Top
-        Me.GroupControl1.Location = New System.Drawing.Point(0, 143)
+        Me.GroupControl1.Location = New System.Drawing.Point(0, 198)
+        Me.GroupControl1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.GroupControl1.Name = "GroupControl1"
         Me.GroupControl1.ShowCaption = False
-        Me.GroupControl1.Size = New System.Drawing.Size(1253, 54)
+        Me.GroupControl1.Size = New System.Drawing.Size(1462, 66)
         Me.GroupControl1.TabIndex = 4
         '
         'SimpleButton5
         '
-        Me.SimpleButton5.Location = New System.Drawing.Point(410, 8)
+        Me.SimpleButton5.Location = New System.Drawing.Point(478, 10)
+        Me.SimpleButton5.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton5.Name = "SimpleButton5"
-        Me.SimpleButton5.Size = New System.Drawing.Size(84, 23)
+        Me.SimpleButton5.Size = New System.Drawing.Size(98, 28)
         Me.SimpleButton5.TabIndex = 11
         Me.SimpleButton5.Text = "Refresh"
         Me.SimpleButton5.ToolTip = "After Editing Excel"
         '
         'SimpleButton4
         '
-        Me.SimpleButton4.Location = New System.Drawing.Point(903, 10)
+        Me.SimpleButton4.Location = New System.Drawing.Point(1053, 12)
+        Me.SimpleButton4.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton4.Name = "SimpleButton4"
-        Me.SimpleButton4.Size = New System.Drawing.Size(148, 23)
+        Me.SimpleButton4.Size = New System.Drawing.Size(173, 28)
         Me.SimpleButton4.TabIndex = 10
         Me.SimpleButton4.Text = "Check List (Help)"
         '
         'SimpleButton3
         '
-        Me.SimpleButton3.Location = New System.Drawing.Point(749, 10)
+        Me.SimpleButton3.Location = New System.Drawing.Point(874, 12)
+        Me.SimpleButton3.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton3.Name = "SimpleButton3"
-        Me.SimpleButton3.Size = New System.Drawing.Size(148, 23)
+        Me.SimpleButton3.Size = New System.Drawing.Size(173, 28)
         Me.SimpleButton3.TabIndex = 9
         Me.SimpleButton3.Text = "Charge Name Updater"
         '
         'SimpleButton2
         '
-        Me.SimpleButton2.Location = New System.Drawing.Point(527, 8)
+        Me.SimpleButton2.Location = New System.Drawing.Point(615, 10)
+        Me.SimpleButton2.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton2.Name = "SimpleButton2"
-        Me.SimpleButton2.Size = New System.Drawing.Size(216, 25)
+        Me.SimpleButton2.Size = New System.Drawing.Size(252, 31)
         Me.SimpleButton2.TabIndex = 8
         Me.SimpleButton2.Text = "Delete Existing Record  for this template"
         '
         'ComboBox1
         '
         Me.ComboBox1.FormattingEnabled = True
-        Me.ComboBox1.Location = New System.Drawing.Point(48, 7)
+        Me.ComboBox1.Location = New System.Drawing.Point(56, 9)
+        Me.ComboBox1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.ComboBox1.Name = "ComboBox1"
-        Me.ComboBox1.Size = New System.Drawing.Size(272, 21)
+        Me.ComboBox1.Size = New System.Drawing.Size(317, 24)
         Me.ComboBox1.TabIndex = 7
         '
         'SimpleButton1
         '
-        Me.SimpleButton1.Location = New System.Drawing.Point(328, 6)
+        Me.SimpleButton1.Location = New System.Drawing.Point(383, 7)
+        Me.SimpleButton1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton1.Name = "SimpleButton1"
-        Me.SimpleButton1.Size = New System.Drawing.Size(76, 25)
+        Me.SimpleButton1.Size = New System.Drawing.Size(89, 31)
         Me.SimpleButton1.TabIndex = 6
         Me.SimpleButton1.Text = "Browse"
         '
         'LabelControl1
         '
-        Me.LabelControl1.Location = New System.Drawing.Point(10, 11)
+        Me.LabelControl1.Location = New System.Drawing.Point(12, 14)
+        Me.LabelControl1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.LabelControl1.Name = "LabelControl1"
-        Me.LabelControl1.Size = New System.Drawing.Size(28, 13)
+        Me.LabelControl1.Size = New System.Drawing.Size(33, 16)
         Me.LabelControl1.TabIndex = 5
         Me.LabelControl1.Text = "Sheet"
         '
         'GridControl1
         '
         Me.GridControl1.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.GridControl1.Location = New System.Drawing.Point(0, 197)
+        Me.GridControl1.EmbeddedNavigator.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
+        Me.GridControl1.Location = New System.Drawing.Point(0, 264)
         Me.GridControl1.MainView = Me.GridView1
+        Me.GridControl1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.GridControl1.MenuManager = Me.ribbonControl
         Me.GridControl1.Name = "GridControl1"
-        Me.GridControl1.Size = New System.Drawing.Size(1253, 317)
+        Me.GridControl1.Size = New System.Drawing.Size(1462, 369)
         Me.GridControl1.TabIndex = 5
         Me.GridControl1.ViewCollection.AddRange(New DevExpress.XtraGrid.Views.Base.BaseView() {Me.GridView1})
         '
         'GridView1
         '
+        Me.GridView1.DetailHeight = 431
         Me.GridView1.GridControl = Me.GridControl1
         Me.GridView1.Name = "GridView1"
         Me.GridView1.OptionsBehavior.Editable = False
@@ -205,12 +217,14 @@ Partial Public Class Client_Master
         '
         'Client_Master
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(1253, 514)
+        Me.ClientSize = New System.Drawing.Size(1462, 633)
         Me.Controls.Add(Me.GridControl1)
         Me.Controls.Add(Me.GroupControl1)
         Me.Controls.Add(Me.ribbonControl)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.Name = "Client_Master"
         Me.Ribbon = Me.ribbonControl
         Me.Text = "Client Data Migration"
