@@ -184,9 +184,9 @@ Partial Public Class Client_Master
 	End Sub
 	Function GET_UNIT(ByVal unitN As String) As UnitModel
 		Try
-			Dim UNIT = Units.LastOrDefault(Function(x) x.UNITNO.ToLower.Trim = unitN.ToLower.Trim)
-			Return UNIT
-		Catch ex As Exception
+            Dim UNIT = Units.LastOrDefault(Function(x) x.UNITNO.ToLower.Trim = unitN.ToLower.Trim)
+            Return UNIT
+        Catch ex As Exception
 			Return Nothing
 		End Try
 	End Function
@@ -391,17 +391,19 @@ Partial Public Class Client_Master
 				ExcelCols.Add(New String(str))
 			Next
 
-			For Each i In FieldName
-				Dim f = ExcelCols.Where(Function(x) x = i)
-				If f.Count = 0 Then
-					MessageBoxStr(String.Format("Column Name {0} is  not found.Please check excels Column Name", i))
-					Dim c As New validFieldNameBuyer
-					c.ShowDialog(Me)
-					Return False
-				End If
-			Next
+            For Each i In FieldName
+                Dim f = ExcelCols.Where(Function(x) x = i)
+                If f.Count = 0 Then
+                    MessageBoxStr(String.Format("Column Name {0} is  not found.Please check excels Column Name", i))
+                    Dim c As New validFieldNameBuyer
+                    c.ShowDialog(Me)
+                    Return False
+                End If
+            Next
 
-			For I As Integer = 0 To GridView1.RowCount - 1
+
+
+            For I As Integer = 0 To GridView1.RowCount - 1
 				Dim view = GridView1
 				Dim Unit = GET_UNIT(view.GetRowCellValue(I, "Unit Code *").ToString())
 				If Unit Is Nothing Then
@@ -535,8 +537,9 @@ Partial Public Class Client_Master
 
 				Save_to_cashier(db, I, CLIENT, Unit)
 				SAVE_APPLIED_PAYMENT(db, I, CLIENT, Unit)
-				SAVE_RESERVATION(db, I, CLIENT, Unit)
-			Next
+                SAVE_RESERVATION(db, I, CLIENT, Unit)
+
+            Next
 		Catch ex As Exception
 			db.isError = True
 		End Try
@@ -826,8 +829,9 @@ Partial Public Class Client_Master
 		End Using
 	End Sub
 	Private Sub BarButtonItem1_ItemClick(sender As Object, e As DevExpress.XtraBars.ItemClickEventArgs) Handles BarButtonItem1.ItemClick
-		If Not validateTemplate() Then Exit Sub
-		If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
+        If Not validateTemplate() Then Exit Sub
+
+        If ComboBox1.Text.ToLower.Contains("buyers") OrElse ComboBox1.Text.ToLower.Contains("buyer") Then
 			saveBuyer()
 		ElseIf ComboBox1.Text.ToLower.Contains("payment") Then
 			SavePayment()
@@ -1099,45 +1103,55 @@ Partial Public Class Client_Master
 			Buyers.Clear()
 			paymentschedmainRecords.Clear()
 
-			'//LOAD UNITS
-			Dim unitdata = Command.Datasource($"SELECT  UNITID,PRJID,TITLE_ID 'COMPANYID',UNITNO,UNITNAME  ,PROJECT_NO 'PROJECTNO'  FROM propmanagement.tbl_property_unit INNER JOIN general.setup_project  ON PROJECT_ID=PRJID")
-			Dim CLIENTDATA = Command.Datasource($"SELECT IFNULL(business_number,0) 'ID',business_fullname ,Type ,Sheet FROM general.`business_list` WHERE `Type`!='SUPPLIER'")
+            Dim cell = GridView1.GetRowCellValue(0, "Unit Code *").ToString().Split("-")
+            Dim pcode = cell(0)
+            '//LOAD UNITS
+            Dim unitdata = Command.Datasource($"SELECT  UNITID,PRJID,TITLE_ID 'COMPANYID',UNITNO,UNITNAME  ,PROJECT_NO 'PROJECTNO',project_name 'ProjectName'   FROM propmanagement.tbl_property_unit INNER JOIN general.setup_project  ON PROJECT_ID=PRJID where UNIT_STATUS!='DELETED' and project='PROJECT SITE' and PROJECT_NO='{pcode}'")
+            Dim CLIENTDATA = Command.Datasource($"SELECT IFNULL(business_number,0) 'ID',business_fullname ,Type ,Sheet FROM general.`business_list` WHERE `Type`!='SUPPLIER'")
 			Dim BUYERSDATA = Command.Datasource($"SELECT ID,business_id,BUYERFULLNAME,PropUnitId FROM propmanagement.buyersinfomain")
 			Dim PAYMENTSCHEMDATA = Command.Datasource($"select ID,GUID,UNITID,PRJID,CLIENTID,BUYERGUID from propmanagement.paymentschedmain")
 
-			'Dim t = Await Task.WhenAll(unitdataTask, CLIENTDATATask,
-			'					 BUYERSDATATask, PAYMENTSCHEMDATATask)
+            'Dim t = Await Task.WhenAll(unitdataTask, CLIENTDATATask,
+            '					 BUYERSDATATask, PAYMENTSCHEMDATATask)
 
-			'Dim unitdata = Await unitdataTask
-			'Dim CLIENTDATA = Await CLIENTDATATask
-			'Dim BUYERSDATA = Await BUYERSDATATask
-			'Dim PAYMENTSCHEMDATA = Await PAYMENTSCHEMDATATask
+            'Dim unitdata = Await unitdataTask
+            'Dim CLIENTDATA = Await CLIENTDATATask
+            'Dim BUYERSDATA = Await BUYERSDATATask
+            'Dim PAYMENTSCHEMDATA = Await PAYMENTSCHEMDATATask
 
-			If unitdata.Rows.Count > 0 Then
-				For Each i In unitdata.Rows
-					Dim item As New UnitModel()
-					item.UNITID = i("UNITID")
-					item.PROJECTID = i("PRJID")
-					item.COMPANYID = i("COMPANYID")
-					item.UNITNO = i("UNITNO")
-					item.UNITNAME = i("UNITNAME")
-					item.PROJECTNO = i("PROJECTNO")
-					Units.Add(item)
-				Next
-			End If
+            If unitdata.Rows.Count > 0 Then
+                For Each i In unitdata.Rows
+                    Dim item As New UnitModel()
+                    item.UNITID = i("UNITID")
+                    item.PROJECTID = i("PRJID")
+                    item.COMPANYID = i("COMPANYID")
+                    item.UNITNO = i("UNITNO")
+                    item.UNITNAME = i("UNITNAME")
+                    item.PROJECTNO = i("PROJECTNO")
+                    item.PROJECTNAME = i("ProjectName")
+                    Units.Add(item)
+                Next
+            End If
 
-			If CLIENTDATA.Rows.Count > 0 Then
-				For Each i In CLIENTDATA.Rows
-					Dim item As New BusinessModel()
-					item.ID = i("ID")
-					item.Name = i("business_fullname")
-					item.Sheet = i("Sheet")
-					item.Type = i("Type")
-					Businesses.Add(item)
-				Next
-			End If
+            Dim res = Units.Select(Function(x) x.PROJECTID).Distinct()
+            If res.Count > 1 Then
+                MessageBoxStr("Unit has conflict with different project.")
+                Dim unitview As New ListOfUnits(Units)
+                unitview.ShowDialog(Me)
+                Return False
+            End If
+            If CLIENTDATA.Rows.Count > 0 Then
+                For Each i In CLIENTDATA.Rows
+                    Dim item As New BusinessModel()
+                    item.ID = i("ID")
+                    item.Name = i("business_fullname")
+                    item.Sheet = i("Sheet")
+                    item.Type = i("Type")
+                    Businesses.Add(item)
+                Next
+            End If
 
-			If BUYERSDATA.Rows.Count > 0 Then
+            If BUYERSDATA.Rows.Count > 0 Then
 				For Each i In BUYERSDATA.Rows
 					Dim item As New BuyersModel()
 					item.ID = i("ID")
@@ -1148,20 +1162,21 @@ Partial Public Class Client_Master
 				Next
 			End If
 
-			If PAYMENTSCHEMDATA.Rows.Count > 0 Then
-				For Each i In PAYMENTSCHEMDATA.Rows
-					Dim item As New PaymentScheduleMainModel()
-					item.ID = i("ID")
-					item.GUID = i("GUID")
-					item.UNITID = i("UNITID")
-					item.PRJID = i("PRJID")
-					item.CLIENTID = i("CLIENTID")
-					item.BUYERGUID = i("BUYERGUID")
-					item.CLIENTID = i("CLIENTID")
-					paymentschedmainRecords.Add(item)
-				Next
-			End If
-			Return True
+            If PAYMENTSCHEMDATA.Rows.Count > 0 Then
+                For Each i In PAYMENTSCHEMDATA.Rows
+                    Dim item As New PaymentScheduleMainModel()
+                    item.ID = i("ID")
+                    item.GUID = i("GUID")
+                    item.UNITID = i("UNITID")
+                    item.PRJID = i("PRJID")
+                    item.CLIENTID = i("CLIENTID")
+                    item.BUYERGUID = i("BUYERGUID")
+                    item.CLIENTID = i("CLIENTID")
+                    paymentschedmainRecords.Add(item)
+                Next
+            End If
+
+            Return True
 		Catch ex As Exception
 			MessageBoxError2(ex)
 			Return False

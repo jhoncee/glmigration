@@ -140,6 +140,12 @@
     <Compile Include="UI\Client Master.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\ListOfUnits.Designer.vb">
+      <DependentUpon>ListOfUnits.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ListOfUnits.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\Manual\Check List.Designer.vb">
       <DependentUpon>Check List.vb</DependentUpon>
     </Compile>
@@ -169,6 +175,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Client Master.resx">
       <DependentUpon>Client Master.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ListOfUnits.resx">
+      <DependentUpon>ListOfUnits.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Manual\Check List.resx">
       <DependentUpon>Check List.vb</DependentUpon>

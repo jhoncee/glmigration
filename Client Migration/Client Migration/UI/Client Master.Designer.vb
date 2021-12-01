@@ -131,7 +131,7 @@ Partial Public Class Client_Master
         '
         'SimpleButton5
         '
-        Me.SimpleButton5.Location = New System.Drawing.Point(478, 10)
+        Me.SimpleButton5.Location = New System.Drawing.Point(479, 15)
         Me.SimpleButton5.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton5.Name = "SimpleButton5"
         Me.SimpleButton5.Size = New System.Drawing.Size(98, 28)
@@ -141,7 +141,7 @@ Partial Public Class Client_Master
         '
         'SimpleButton4
         '
-        Me.SimpleButton4.Location = New System.Drawing.Point(1053, 12)
+        Me.SimpleButton4.Location = New System.Drawing.Point(1054, 15)
         Me.SimpleButton4.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton4.Name = "SimpleButton4"
         Me.SimpleButton4.Size = New System.Drawing.Size(173, 28)
@@ -150,7 +150,7 @@ Partial Public Class Client_Master
         '
         'SimpleButton3
         '
-        Me.SimpleButton3.Location = New System.Drawing.Point(874, 12)
+        Me.SimpleButton3.Location = New System.Drawing.Point(875, 15)
         Me.SimpleButton3.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton3.Name = "SimpleButton3"
         Me.SimpleButton3.Size = New System.Drawing.Size(173, 28)
@@ -159,17 +159,17 @@ Partial Public Class Client_Master
         '
         'SimpleButton2
         '
-        Me.SimpleButton2.Location = New System.Drawing.Point(615, 10)
+        Me.SimpleButton2.Location = New System.Drawing.Point(616, 15)
         Me.SimpleButton2.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton2.Name = "SimpleButton2"
-        Me.SimpleButton2.Size = New System.Drawing.Size(252, 31)
+        Me.SimpleButton2.Size = New System.Drawing.Size(252, 28)
         Me.SimpleButton2.TabIndex = 8
         Me.SimpleButton2.Text = "Delete Existing Record  for this template"
         '
         'ComboBox1
         '
         Me.ComboBox1.FormattingEnabled = True
-        Me.ComboBox1.Location = New System.Drawing.Point(56, 9)
+        Me.ComboBox1.Location = New System.Drawing.Point(57, 18)
         Me.ComboBox1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.ComboBox1.Name = "ComboBox1"
         Me.ComboBox1.Size = New System.Drawing.Size(317, 24)
@@ -177,16 +177,16 @@ Partial Public Class Client_Master
         '
         'SimpleButton1
         '
-        Me.SimpleButton1.Location = New System.Drawing.Point(383, 7)
+        Me.SimpleButton1.Location = New System.Drawing.Point(384, 15)
         Me.SimpleButton1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.SimpleButton1.Name = "SimpleButton1"
-        Me.SimpleButton1.Size = New System.Drawing.Size(89, 31)
+        Me.SimpleButton1.Size = New System.Drawing.Size(89, 28)
         Me.SimpleButton1.TabIndex = 6
         Me.SimpleButton1.Text = "Browse"
         '
         'LabelControl1
         '
-        Me.LabelControl1.Location = New System.Drawing.Point(12, 14)
+        Me.LabelControl1.Location = New System.Drawing.Point(13, 22)
         Me.LabelControl1.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
         Me.LabelControl1.Name = "LabelControl1"
         Me.LabelControl1.Size = New System.Drawing.Size(33, 16)

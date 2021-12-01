@@ -5,4 +5,5 @@
     Property UNITNO As String
     Property UNITNAME As String
     Property PROJECTNO As String
+    Property PROJECTNAME As String
 End Class
